@@ -4,9 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node tools/dev-preview-server.mjs",
+    "preview": "node tools/dev-preview-server.mjs",
     "android:web": "node tools/build-android-web.mjs",
     "android:sync": "npm run android:web && npx cap sync android",
-    "dev:android": "npm run android:web && node tools/dev-preview-server.mjs"
+    "android:build": "node tools/deploy-apk.mjs --build-only",
+    "android:install": "node tools/deploy-apk.mjs --install-only",
+    "android:deploy": "node tools/deploy-apk.mjs",
+    "dev:android": "node tools/dev-preview-server.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.0"

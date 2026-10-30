@@ -3,7 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const root = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), "android-web");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.PORT) || 4173;
 
 const contentTypes = {
@@ -152,7 +152,13 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  const relative = decodeURIComponent(pathname === "/" ? "/index.html" : pathname);
+  if (pathname === "/" || pathname === "/index.html") {
+    res.writeHead(302, { Location: "/src/app/index.html" });
+    res.end();
+    return;
+  }
+
+  const relative = decodeURIComponent(pathname);
   const filePath = path.resolve(root, "." + relative);
   if (!filePath.startsWith(root + path.sep)) {
     res.writeHead(403).end("Forbidden");
@@ -174,5 +180,8 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`[dev] preview at http://127.0.0.1:${port}/_dev`);
+  console.log(`[dev] Local browser preview server running:`);
+  console.log(`      > Live App (Direct):       http://127.0.0.1:${port}/`);
+  console.log(`      > Mobile Frame Simulator:  http://127.0.0.1:${port}/_dev`);
+  console.log(`      Source files in src/ are served live (refresh browser on change).`);
 });
