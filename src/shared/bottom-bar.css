@@ -1,0 +1,52 @@
+/* Floating navigation for the Android app shell. Hidden unless the page opts
+   in with .has-bottom-bar, so the extension keeps its desktop layout. */
+.bottom-bar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  transform: translateX(-50%);
+  z-index: 60;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: var(--bg-card);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.has-bottom-bar .bottom-bar {
+  display: flex;
+}
+
+.bottom-bar-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 92px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-bar-item.is-active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+body.keyboard-open .bottom-bar {
+  transform: translate(-50%, 140%);
+  opacity: 0;
+  pointer-events: none;
+}

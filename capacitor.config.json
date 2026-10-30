@@ -1,0 +1,8 @@
+{
+  "appId": "com.amppa.timemapper",
+  "appName": "TimeMapper",
+  "webDir": "android-web",
+  "server": {
+    "androidScheme": "https"
+  }
+}

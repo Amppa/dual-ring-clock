@@ -1,0 +1,362 @@
+.timeline-panel {
+  position: relative;
+  overflow: visible;
+  margin-top: 14px;
+  margin-bottom: 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.timeline-rows {
+  max-height: 320px;
+  overflow-y: auto;
+  border-radius: 7px;
+  padding: 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: var(--timeline-label-width) 1fr;
+  min-height: 46px;
+  background: var(--bg-card);
+  transition: background-color 0.2s ease;
+}
+
+.hours {
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Horizontal scrubbing must not block vertical page scrolling on touch. */
+.hours,
+.scrub-handle,
+.scrub-knob-top,
+.scrub-knob-bottom {
+  touch-action: pan-y;
+}
+
+.city-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 4px 7px 10px;
+  border-right: 1px solid var(--divider);
+}
+
+.city-label-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.city-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.city-time {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dst-text {
+  display: none;
+}
+
+.hour-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 calc(100% / 24);
+  min-width: 0;
+  border-right: var(--timeline-cell-border);
+  color: #ffffff;
+  font-size: var(--timeline-cell-font-size);
+  font-weight: var(--timeline-cell-font-weight);
+  cursor: crosshair;
+}
+
+.date-badge {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.85;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ======================================
+   Timeline Vertical Lines & Knobs
+   ====================================== */
+
+/* Grid overlay tracking the 1fr hours width (uses --timeline-label-width) */
+.timeline-track-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--timeline-label-width);
+  right: 0;
+  pointer-events: none;
+  z-index: 8;
+}
+
+/* Shared base for both lines */
+.timeline-vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  pointer-events: none;
+  z-index: 8;
+  will-change: left;
+}
+
+/* Container for multiple scrub lines */
+#scrubLinesContainer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Container for interval span badges between adjacent lines */
+#timelineIntervalsContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.timeline-interval-span {
+  position: absolute;
+  bottom: 0;
+  height: 0;
+  border-bottom: 1px dashed var(--divider);
+  pointer-events: none;
+}
+
+.timeline-interval-pill {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 5px;
+  border-radius: 9px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--divider);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Group wrapper for a single dynamic scrub line */
+.scrub-line-group {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: z-index 0.15s;
+  will-change: left;
+}
+
+.scrub-line-group:hover,
+.scrub-line-group.is-dragging {
+  z-index: 20;
+}
+
+/* Now Line — always visible, crisp white with contrast shadow (current time) */
+.now-line {
+  border-left: 2px solid #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.7), 0 0 1px rgba(0, 0, 0, 0.9);
+  z-index: 8;
+}
+
+/* Scrub Line — draggable crisp white dashed line with shadow */
+.scrub-line {
+  border-left: 2px dashed rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.15s, border-width 0.15s, box-shadow 0.15s;
+}
+
+/* Scrub Handle — wider invisible hit area centered on scrub line */
+.scrub-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  transform: translateX(-50%);
+  background: transparent;
+  cursor: ew-resize;
+  pointer-events: auto;
+  z-index: 11;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+/* Floating Knobs / Badges */
+.timeline-knob {
+  position: absolute;
+  top: -11px;
+  left: 0;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 15;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Now Line Knob (Informative only, shows numeric time) */
+.now-knob-top {
+  padding: 3px 6px;
+  pointer-events: none;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  gap: 3px;
+}
+
+/* Location pin that marks the badge as the current-time reference */
+.now-knob-top .knob-icon {
+  font-size: 9px;
+  line-height: 1;
+}
+
+/* Scrub Line Knob (Draggable, with [HH:mm  ×]) */
+.scrub-knob-top {
+  padding: 2px 4px 2px 6px;
+  gap: 4px;
+  cursor: ew-resize;
+  pointer-events: auto;
+}
+
+.scrub-knob-top .knob-time {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Bottom Anchor Dots */
+.timeline-knob-bottom {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  z-index: 14;
+  pointer-events: none;
+  transition: transform var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.now-knob-bottom {
+  background: #ffffff;
+}
+
+/* Hover & Dragging on Scrub Line: Enlarge & Glow! */
+.scrub-line-group:hover .scrub-knob-top,
+.scrub-line-group.is-dragging .scrub-knob-top {
+  transform: translateX(-50%) scale(1.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+.scrub-line-group:hover .scrub-line,
+.scrub-line-group.is-dragging .scrub-line {
+  border-left-style: solid;
+  border-left-width: 2.5px;
+  border-left-color: #ffffff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+.scrub-line-group:hover .scrub-knob-bottom,
+.scrub-line-group.is-dragging .scrub-knob-bottom {
+  transform: translateX(-50%) scale(1.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Delete button [x] inside the top knob */
+.scrub-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  color: #444444;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.scrub-reset-btn:hover {
+  background: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  transform: scale(1.15);
+}
+
+.scrub-reset-btn:active {
+  transform: scale(0.92);
+}

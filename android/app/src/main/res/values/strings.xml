@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TimeMapper</string>
+    <string name="title_activity_main">TimeMapper</string>
+    <string name="package_name">com.amppa.timemapper</string>
+    <string name="custom_url_scheme">com.amppa.timemapper</string>
+</resources>

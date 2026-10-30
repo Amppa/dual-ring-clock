@@ -1,0 +1,37 @@
+/* ==========================================================================
+   Shared Map Tokens — TimeMapper
+   Minimap / pin / night palette consumed by the popup and the options-page
+   live previews. Dual-block structure matching theme.js: light default
+   and explicit dark override.
+   ========================================================================== */
+
+:root,
+:root[data-theme="light"] {
+  --unselected-pin: #f2ba68;
+  --night-pin: #ffc56f;
+  --selected-pin: #de6b23;
+  --map-shell-bg: #ffffff;
+  --map-filter: none;
+  --map-opacity: .96;
+  --night-path-fill: rgba(0, 0, 0, 0.32);
+  --night-path-stroke: rgba(0, 0, 0, 0.5);
+  --map-time-label-bg: rgba(255, 255, 255, 0.9);
+  --map-time-label-color: var(--selected-pin);
+  --map-time-label-border: var(--selected-pin);
+  --city-pin-border: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --unselected-pin: #dba825;
+  --night-pin: #91701d;
+  --selected-pin: #fb923c;
+  --map-shell-bg: #15151a;
+  --map-filter: invert(0.88) brightness(0.92) contrast(1.1);
+  --map-opacity: .92;
+  --night-path-fill: rgba(0, 0, 0, 0.52);
+  --night-path-stroke: rgba(255, 255, 255, 0.4);
+  --map-time-label-bg: rgba(24, 24, 30, 0.92);
+  --map-time-label-color: #fb923c;
+  --map-time-label-border: #fb923c;
+  --city-pin-border: #1a1a20;
+}

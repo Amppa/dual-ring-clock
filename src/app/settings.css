@@ -1,0 +1,995 @@
+/* ==========================================================================
+   Mobile Settings Stylesheet - TimeMapper
+   ========================================================================== */
+/* ==========================================================================
+   Options Layout Stylesheet - TimeMapper
+   Consumes design tokens from src/shared/tokens.css
+   Style strictly mirrors ../_chrome-ext-template
+   ========================================================================== */
+
+/* Options-page local tokens. Shared palette lives in ../shared/tokens.css;
+   these only cover surfaces unique to this page. */
+:root,
+:root[data-theme="light"] {
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus-border: #111111;
+  --danger-hover-bg: rgba(239, 68, 68, 0.12);
+  --search-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] {
+  --input-bg: #18181c;
+  --input-border: rgba(255, 255, 255, 0.16);
+  --input-focus-border: #ffffff;
+}
+
+/* Reserve the scrollbar gutter permanently. Without it, a page whose height
+   hovers around the viewport threshold flips between "scrollbar present" and
+   "scrollbar absent"; the resulting ~17px width change reflows the fixed
+   360px settings column, changes the height again and restarts the cycle,
+   which reads as a scrollbar blinking in and out. Declaring it on the root
+   element propagates to the viewport; the body rule keeps it stable if the
+   body ever becomes the scrolling box. */
+.settings-view {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-view[hidden] {
+  display: none;
+}
+
+.container {
+  width: 100%;
+}
+
+.settings-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.settings-card {
+  background: var(--bg-card);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  transition: border-color var(--transition-base);
+
+  & .section-title {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    letter-spacing: -0.2px;
+  }
+}
+
+/* Control Row Pattern */
+.control-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  gap: 16px;
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+
+  &:last-child,
+  &:last-of-type {
+    padding-bottom: 0;
+  }
+
+  & .control-label-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+
+    & .control-label {
+      font-size: var(--font-md);
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    & .control-desc {
+      font-size: var(--font-sm);
+      color: var(--text-secondary);
+    }
+  }
+}
+
+/* Explicit divider object */
+.divider {
+  border: 0;
+  border-top: 1px solid var(--divider);
+  margin: 0;
+}
+
+/* Collapsible card (native details/summary, e.g. map texture calibration) */
+.collapsible-card {
+  padding-bottom: var(--space-xl);
+}
+
+.collapsible-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+
+  & .section-title {
+    margin-bottom: 0;
+  }
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::after {
+    content: "▼";
+    font-size: 10px;
+    color: var(--text-secondary);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+  }
+}
+
+details[open]>.collapsible-summary::after {
+  transform: rotate(180deg);
+}
+
+.collapsible-body {
+  margin-top: var(--space-lg);
+  border-top: 1px solid var(--divider);
+  padding-top: var(--space-md);
+}
+
+/* Reset & Secondary Action Buttons */
+.reset-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--text-primary);
+    border-color: var(--input-focus-border);
+    background: var(--btn-bg-hover);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+/* Slider Controls in Minimap Card */
+.slider-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.slider-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.stepper-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: none;
+
+  &:hover {
+    background: var(--btn-bg-hover);
+    border-color: var(--input-focus-border);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.settings-slider {
+  flex: 1;
+  width: auto;
+  min-width: 80px;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--track-off);
+  border-radius: var(--radius-pill);
+  outline: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--knob);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+
+    &:hover {
+      transform: scale(1.15);
+    }
+  }
+
+  &::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--knob);
+    border: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+
+    &:hover {
+      transform: scale(1.15);
+    }
+  }
+}
+
+.val-badge {
+  min-width: 46px;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: var(--font-xs);
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.styled-select {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  /* Fixed height instead of padding-derived height: every select on the page
+     ends up exactly --control-height tall, whatever the option text is. */
+  height: var(--control-height);
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  transition: none;
+
+  &:hover {
+    border-color: var(--input-focus-border);
+  }
+
+  &:focus {
+    border-color: var(--input-focus-border);
+  }
+}
+
+/* Native option list follows the page theme in both modes.
+   Without this Chrome renders <option> on a white sheet while the
+   surrounding card is dark, leaving light text unreadable. */
+.styled-select option {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+/* Page Footer */
+.footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 24px;
+  padding: 8px 0;
+}
+
+.footer-repo-link {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+/* Options switch ON state: solid swatch color instead of the shared accent
+   gradient defined in tokens.css (.switch input:checked + .slider). Kept here
+   so the popup's toggle keeps its own palette. */
+.switch input:checked+.slider {
+  background: #F9BE6C;
+}
+
+/* ==========================================================================
+   Dual-Column Adaptations for Settings Column (360px)
+   .settings-card is used by both columns. The preview card has room for the
+   roomy padding; the fixed 360px settings track needs the tighter one, and
+   without the override every settings card inherited the preview sizing.
+   Component-level compacting (city card grid, hour cell type) already lives
+   in the base rules in options-cities.css / options-periods.css, because
+   those components appear in the settings column only.
+   ========================================================================== */
+
+.settings-column .settings-card {
+  padding: var(--space-lg) var(--space-md);
+}
+
+.settings-column .settings-card .section-title {
+  font-size: var(--font-lg);
+  margin-bottom: var(--space-md);
+}
+
+.settings-column .settings-card .collapsible-summary .section-title {
+  margin-bottom: 0;
+}
+
+/* Map Texture Calibration Sliders in 360px Column.
+   Pinned explicitly here rather than left to the shared rule: a label and a
+   slider side by side need more than 360px, so the column must never fall
+   back to a horizontal arrangement. */
+.settings-column .slider-control-group {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.settings-column .slider-control-group .slider-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.settings-column .slider-control-group .settings-slider {
+  flex: 1;
+  width: auto;
+  min-width: 80px;
+}
+
+/* Sponsor Card in Settings Column */
+.settings-column .sponsor-card {
+  padding: var(--space-md);
+}
+
+.sponsor-control-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.sponsor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: none;
+
+  &:hover {
+    background: var(--btn-bg-hover);
+    border-color: var(--input-focus-border);
+    color: var(--text-primary);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Responsive Breakpoint: Single-Column Fallback for Small Screens (< 1180px)
+   ========================================================================== */
+@media (max-width: 1180px) {
+  .container {
+    max-width: 720px;
+  }
+
+  .settings-column {
+    width: 100%;
+  }
+}
+
+#cardAppearance {
+  display: block;
+}
+}
+
+body.embedded .header-actions {
+  display: none;
+}
+
+body.embedded #cardPeriods {
+  display: none;
+}
+
+body.embedded .sponsor-control-group .control-desc {
+  display: none;
+}
+
+body.embedded .sponsor-control-group .control-label {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+/* ==========================================================================
+   Options Cities Stylesheet - TimeMapper
+   City Management, Drag & Drop Reordering, Search & Selection
+   ========================================================================== */
+
+.current-cities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.current-city-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) minmax(0, 1.6fr) 24px;
+  gap: 4px;
+  padding: 5px 6px;
+  align-items: center;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  background: var(--bg-card);
+  font-size: 11px;
+  transition: none;
+  user-select: none;
+}
+
+.current-city-card:hover {
+  border-color: var(--text-secondary);
+}
+
+.current-city-card.is-dragging {
+  z-index: 5;
+  opacity: 0.92;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  will-change: transform;
+}
+
+.current-city-card.drag-over-top::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: -5px;
+  height: 2px;
+  background-color: var(--input-focus-border);
+  border-radius: 1px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.current-city-card.drag-over-bottom::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -5px;
+  height: 2px;
+  background-color: var(--input-focus-border);
+  border-radius: 1px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: var(--text-secondary);
+  font-size: 13px;
+  user-select: none;
+  width: 16px;
+  height: 26px;
+  align-self: center;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.current-city-card input,
+.current-city-card select {
+  width: 100%;
+  min-height: 28px;
+  padding: 0 4px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 11px;
+  outline: none;
+  transition: none;
+  user-select: text;
+}
+
+.current-city-card .city-zone-select {
+  min-width: 0;
+}
+
+.current-city-card input:focus,
+.current-city-card select:focus {
+  border-color: var(--input-focus-border);
+}
+
+.current-city-card input.invalid,
+.current-city-card select.invalid {
+  border-color: #ff3b30;
+  box-shadow: 0 0 0 1px #ff3b30;
+}
+
+.current-city-card input[type="number"]::-webkit-outer-spin-button,
+.current-city-card input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.current-city-card input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.remove-city-card-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  transition: none;
+}
+
+.remove-city-card-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--input-focus-border);
+  background: var(--btn-bg-hover);
+}
+
+.city-list-header-group {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.city-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.search-bar-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.search-bar-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  transition: none;
+}
+
+.search-bar-row input:focus {
+  border-color: var(--input-focus-border);
+}
+
+.search-bar-row button,
+.city-list-actions button,
+.city-list-actions .text-button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: none;
+}
+
+.search-bar-row button:hover,
+.city-list-actions button:hover,
+.city-list-actions .text-button:hover {
+  background: var(--btn-bg-hover);
+  border-color: var(--input-focus-border);
+}
+
+.current-cities-container {
+  margin-bottom: var(--space-md);
+}
+
+.mobile-add-city-row {
+  display: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+body.embedded .mobile-add-city-row {
+  display: grid;
+}
+
+body.embedded .mobile-add-city-row .city-name-input {
+  pointer-events: none;
+}
+
+body.embedded #cardCities > .divider,
+body.embedded .add-city-header,
+body.embedded .add-city-search {
+  display: none;
+}
+
+.add-city-header {
+  padding-bottom: 8px;
+}
+
+.add-city-search {
+  width: 100%;
+}
+
+.add-city-search .search-container {
+  width: 100%;
+  position: relative;
+}
+
+.add-city-search .search-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.add-city-search .search-bar-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Quiet one-line feedback under the search row; hidden while nothing to report. */
+.search-status {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.search-status.is-error {
+  color: #ff3b30;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-results-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--bg-card);
+  box-shadow: var(--search-shadow);
+  z-index: 1000;
+}
+
+.search-results-list[hidden] {
+  display: none !important;
+}
+
+.search-result-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.search-result-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--divider);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.search-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.search-result-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-result-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.search-result-country {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.search-result-details {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* Scrollbar polish */
+.current-cities-list::-webkit-scrollbar,
+.search-results-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.current-cities-list::-webkit-scrollbar-track,
+.search-results-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.current-cities-list::-webkit-scrollbar-thumb,
+.search-results-list::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 3px;
+}
+
+.current-cities-list::-webkit-scrollbar-thumb:hover,
+.search-results-list::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* Responsive adjustment for City Card */
+@media (max-width: 1180px) {
+  .current-city-card {
+    grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.6fr) 24px;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .current-city-card .drag-handle {
+    width: 20px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .remove-city-card-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+  }
+}
+
+/* Touch layout: a full-height handle column replaces the compact desktop one. */
+@media (pointer: coarse) {
+  .current-city-card {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "handle name zone remove";
+  }
+
+  .current-city-card .drag-handle {
+    grid-area: handle;
+    width: 44px;
+    height: 100%;
+    font-size: 18px;
+    touch-action: none;
+  }
+
+  .current-city-card .city-name-input { grid-area: name; }
+  .current-city-card .city-zone-select { grid-area: zone; min-width: 0; }
+  .current-city-card .remove-city-card-btn { grid-area: remove; align-self: center; }
+
+  body.embedded .mobile-add-city-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-areas: "name zone";
+  }
+}
+
+/* ==========================================================================
+   Options Time Periods Stylesheet - TimeMapper
+   Interactive 24-Hour Grid Timeline & Period Boundaries
+   ========================================================================== */
+
+/* Numeric select: keeps a stable minimum width and centres the digit.
+   Weight, height, radius and font come from the shared .styled-select
+   base so it matches every other dropdown on the page. */
+.period-count-select {
+  min-width: 64px;
+  text-align: center;
+}
+
+.period-timeline-header {
+  padding-bottom: 0;
+}
+
+/* ==========================================================================
+   Interactive 24-Hour Grid Timeline (Matches Preview Timeline Style)
+   ========================================================================== */
+.time-periods-timeline-container {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 var(--space-md) 0;
+  user-select: none;
+}
+
+/* Interactive Timeline Panel (Replicates .timeline-panel & .hours) */
+.interactive-timeline-panel {
+  position: relative;
+  overflow: visible;
+  background: var(--bg-primary);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  margin: 12px 0 0 0;
+}
+
+.interactive-hours {
+  display: flex;
+  position: relative;
+  width: 100%;
+  height: 44px;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+/* Interactive Hour Cell inherits layout, sizing and typography from .hour-cell */
+.interactive-hour-cell {
+  cursor: pointer;
+  /* Same type size as the preview cells. The settings column is 360px wide
+     against the preview's 760px, so 24 cells get half the room and the
+     tracking stays tight to keep the two-digit labels from touching. */
+  letter-spacing: -0.5px;
+  transition: background-color 0.15s ease, filter 0.15s ease;
+}
+
+.interactive-hour-cell:last-child {
+  border-right: none;
+}
+
+.interactive-hour-cell:hover {
+  filter: brightness(1.15);
+}
+
+/* Dividers Layer */
+.timeline-dividers-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Individual Draggable Divider.
+   The container is the grab strip only; the markers themselves reuse the
+   preview timeline's .timeline-knob / .timeline-knob-bottom classes, so
+   both timelines draw the same handle. The container spans exactly the
+   panel, which is what puts the bottom knob's centre on the panel edge
+   (bottom: -4px on an 8px circle) the same way the preview does it. */
+.timeline-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+  pointer-events: auto;
+  touch-action: none;
+  outline: none;
+}
+
+.timeline-divider-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+/* The shared knob classes anchor to a zero-width line; the divider is a
+   28px grab strip, so shift the markers back to the line's centre. */
+.timeline-divider .timeline-knob,
+.timeline-divider .timeline-knob-bottom {
+  left: 50%;
+}
+
+/* Divider badge: same box as the preview markers - the shared .timeline-knob
+   metrics plus the now-knob padding - sized for the period icon and the
+   start hour. */
+.timeline-divider .divider-knob-top {
+  padding: 3px 6px;
+}
+
+.timeline-divider:hover .timeline-knob,
+.timeline-divider:hover .timeline-knob-bottom,
+.timeline-divider.is-dragging .timeline-knob,
+.timeline-divider.is-dragging .timeline-knob-bottom {
+  transform: translateX(-50%) scale(1.18);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  border-color: var(--accent-solid);
+}
+
+.timeline-divider.is-dragging .timeline-divider-line {
+  background: var(--accent-solid);
+  width: 3px;
+}
+

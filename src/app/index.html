@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TimeMapper</title>
+  <link rel="stylesheet" href="../shared/tokens.css">
+  <link rel="stylesheet" href="../shared/map-tokens.css">
+  <link rel="stylesheet" href="../shared/bottom-bar.css">
+  <link rel="stylesheet" href="map.css">
+  <link rel="stylesheet" href="timeline.css">
+  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="../shared/theme.js"></script>
+</head>
+
+<body class="has-bottom-bar">
+  <main class="app app-mobile">
+    <!-- View 1: Home (Map & Timeline) -->
+    <div id="homeView" class="view">
+      <section class="map-panel">
+        <div class="map-content">
+          <div class="map-shell">
+            <img class="world-map" src="../../assets/world-map.jpg" fetchpriority="high" decoding="async" alt="World Map">
+            <div class="hour-lines" aria-hidden="true"></div>
+            <svg id="nightAreaOverlay" class="night-area-overlay" viewBox="0 0 100 100" preserveAspectRatio="none"
+              aria-hidden="true">
+              <path id="nightPath" d=""></path>
+              <path id="nightPathRef" d=""></path>
+            </svg>
+            <div id="timezoneHoverBands" class="timezone-hover-bands"></div>
+            <div id="cityLayer" class="city-layer" aria-label="City Pins"></div>
+            <div id="mapTimeLabelLayer" class="map-time-label-layer" aria-hidden="true"></div>
+          </div>
+          <div id="mapTimeline" class="map-timeline" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <section class="timeline-panel" aria-label="Timeline">
+        <div id="timelineRows" class="timeline-rows"></div>
+        <div id="timelineTrackOverlay" class="timeline-track-overlay">
+          <div id="timelineIntervalsContainer" class="timeline-intervals-container" aria-hidden="true"></div>
+          <div id="nowLine" class="timeline-vline now-line" aria-hidden="true"></div>
+          <div id="scrubLinesContainer"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- View 2: Settings & Cities (Native Single Page View) -->
+    <div id="settingsView" class="settings-view" hidden>
+      <div class="container">
+        <div class="settings-column">
+          <!-- Card: 外觀 Appearance -->
+          <section class="settings-card" id="cardAppearance">
+            <h2 class="section-title" data-i18n="appearanceCardTitle">外觀</h2>
+            <div class="control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="langSection">語言</span>
+              </div>
+              <select class="styled-select" id="mobileLangSelect" aria-label="Language">
+                <option value="auto" data-i18n="langAuto">自動</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="zh">中文</option>
+              </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="themeLabel">佈景主題</span>
+              </div>
+              <select class="styled-select" id="mobileThemeSelect" aria-label="Theme">
+                <option value="auto" data-i18n="themeAuto">自動</option>
+                <option value="light" data-i18n="themeLight">淺色</option>
+                <option value="dark" data-i18n="themeDark">深色</option>
+              </select>
+            </div>
+          </section>
+
+          <!-- Card: 城市管理 Cities -->
+          <section class="settings-card" id="cardCities">
+            <h2 class="section-title" data-i18n="customCitySection">城市清單管理</h2>
+            <div class="current-cities-container">
+              <div class="control-group city-list-header-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="currentCitiesTitle">編輯城市清單</span>
+                </div>
+                <div class="city-list-actions">
+                  <button id="clearAllButton" class="text-button" type="button" data-i18n="clearAllBtn">清除全部</button>
+                  <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">預設範例</button>
+                </div>
+              </div>
+              <div id="currentCitiesList" class="current-cities-list"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="current-city-card mobile-add-city-row" id="mobileAddCityRow">
+              <input id="mobileAddCityName" class="city-name-input" type="text" readonly aria-label="City name">
+              <select id="mobileAddCityZone" class="city-zone-select" aria-label="Timezone"></select>
+            </div>
+
+            <div class="control-group add-city-header">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="addCityTitle">新增城市</span>
+                <span class="control-desc" data-i18n="addCityDesc">最多顯示10個城市。</span>
+              </div>
+            </div>
+            <div class="add-city-search">
+              <div class="search-container">
+                <div class="search-bar-row">
+                  <input id="searchCityInput" type="text" placeholder="e.g. London"
+                    data-i18n-placeholder="searchPlaceholder" maxlength="40">
+                  <button id="searchCityBtn" type="button" data-i18n="searchBtn">搜尋</button>
+                </div>
+                <p id="searchStatus" class="search-status" role="status" aria-live="polite" hidden></p>
+                <div id="searchResultsList" class="search-results-list" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Card: 小地圖設定 Minimap (Collapsible) -->
+          <details class="settings-card collapsible-card" id="cardMinimap">
+            <summary class="collapsible-summary">
+              <span class="section-title" data-i18n="mapCardTitle">小地圖設定</span>
+            </summary>
+            <div class="collapsible-body">
+              <div class="control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="showNightArea">顯示夜間範圍</span>
+                  <span class="control-desc" data-i18n="showNightAreaDesc">在世界地圖上繪製當前夜間陰影範圍</span>
+                </div>
+                <label class="switch" title="Show Night Area">
+                  <input type="checkbox" id="showNightArea" data-setting="showNightArea" aria-label="Show Night Area Switch">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="showHourLines">顯示小時線</span>
+                  <span class="control-desc" data-i18n="showHourLinesDesc">在地圖上繪製垂直線，以每兩小時分隔</span>
+                </div>
+                <label class="switch" title="Show Hour Lines">
+                  <input type="checkbox" id="showHourLines" data-setting="showHourLines" aria-label="Show Hour Lines Switch">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="showCityTimes">顯示城市時間</span>
+                  <span class="control-desc" data-i18n="showCityTimesDesc">在已選取的城市上方，顯示當地時間</span>
+                </div>
+                <label class="switch" title="Show City Times">
+                  <input type="checkbox" id="showCityTimes" data-setting="showCityTimes" aria-label="Show City Times Switch">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <!-- Card: 小地圖貼圖校正 Map Texture Calibration (Collapsible) -->
+          <details class="settings-card collapsible-card" id="cardMapTexture">
+            <summary class="collapsible-summary">
+              <span class="section-title" data-i18n="mapTextureCardTitle">小地圖貼圖設定</span>
+            </summary>
+            <div class="collapsible-body">
+              <div class="control-group slider-control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="longitude">➡️ 經度偏移</span>
+                </div>
+                <div class="slider-control">
+                  <button type="button" class="stepper-btn" data-adjust="lngOffset" data-delta="-0.1" aria-label="Decrease Longitude Offset">−</button>
+                  <input type="range" class="settings-slider" min="-40" max="40" step="0.1" value="1.0" data-setting="lngOffset" aria-label="Longitude Offset Slider">
+                  <button type="button" class="stepper-btn" data-adjust="lngOffset" data-delta="0.1" aria-label="Increase Longitude Offset">+</button>
+                  <output class="val-badge" data-output="lngOffset">1.0</output>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group slider-control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="latitude">⬆️ 緯度偏移</span>
+                </div>
+                <div class="slider-control">
+                  <button type="button" class="stepper-btn" data-adjust="latOffset" data-delta="-0.1" aria-label="Decrease Latitude Offset">−</button>
+                  <input type="range" class="settings-slider" min="-40" max="40" step="0.1" value="20.7" data-setting="latOffset" aria-label="Latitude Offset Slider">
+                  <button type="button" class="stepper-btn" data-adjust="latOffset" data-delta="0.1" aria-label="Increase Latitude Offset">+</button>
+                  <output class="val-badge" data-output="latOffset">20.7</output>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group slider-control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="width">↔️ 寬度縮放</span>
+                </div>
+                <div class="slider-control">
+                  <button type="button" class="stepper-btn" data-adjust="widthScale" data-delta="-0.01" aria-label="Decrease Width Scale">−</button>
+                  <input type="range" class="settings-slider" min="0.50" max="1.50" step="0.01" value="1.0" data-setting="widthScale" aria-label="Width Scale Slider">
+                  <button type="button" class="stepper-btn" data-adjust="widthScale" data-delta="0.01" aria-label="Increase Width Scale">+</button>
+                  <output class="val-badge" data-output="widthScale">1.00</output>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group slider-control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="height">↕️ 高度縮放</span>
+                </div>
+                <div class="slider-control">
+                  <button type="button" class="stepper-btn" data-adjust="heightScale" data-delta="-0.01" aria-label="Decrease Height Scale">−</button>
+                  <input type="range" class="settings-slider" min="0.50" max="1.50" step="0.01" value="1.39" data-setting="heightScale" aria-label="Height Scale Slider">
+                  <button type="button" class="stepper-btn" data-adjust="heightScale" data-delta="0.01" aria-label="Increase Height Scale">+</button>
+                  <output class="val-badge" data-output="heightScale">1.39</output>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group slider-control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="mapYOffset">⬆️ 地圖y偏移</span>
+                </div>
+                <div class="slider-control">
+                  <button type="button" class="stepper-btn" data-adjust="mapYOffset" data-delta="-1" aria-label="Decrease Map Y Offset">−</button>
+                  <input type="range" class="settings-slider" min="-100" max="100" step="1" value="30" data-setting="mapYOffset" aria-label="Map Y Offset Slider">
+                  <button type="button" class="stepper-btn" data-adjust="mapYOffset" data-delta="1" aria-label="Increase Map Y Offset">+</button>
+                  <output class="val-badge" data-output="mapYOffset">30</output>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="control-group">
+                <div class="control-label-wrap">
+                  <span class="control-label" data-i18n="resetMapParams">重設地圖設定</span>
+                </div>
+                <button type="button" class="reset-btn" id="resetMapButton" data-i18n="resetBtn">恢復預設</button>
+              </div>
+            </div>
+          </details>
+
+          <!-- Card: 時段設定 Time Periods -->
+          <section class="settings-card" id="cardPeriods">
+            <h2 class="section-title" data-i18n="periodCardTitle">時段設定</h2>
+
+            <div class="control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" id="periodCountLabel" data-i18n="periodCountLabel">時段數量</span>
+                <span class="control-desc" id="periodCountDesc" data-i18n="periodCountDesc">設定一天劃分的時段</span>
+              </div>
+              <select class="styled-select period-count-select" id="periodCountSelect" aria-label="Period Count">
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="control-group period-timeline-header">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="periodTimelineLabel">時段設定</span>
+                <span class="control-desc" data-i18n="dragHandleDesc">拖曳手柄以調整時段範圍</span>
+              </div>
+              <button type="button" class="reset-btn" id="resetPeriodsButton" data-i18n="resetBtn">恢復預設</button>
+            </div>
+
+            <div class="time-periods-timeline-container">
+              <div class="interactive-timeline-panel" id="interactiveTimelinePanel">
+                <div class="hours interactive-hours" id="interactiveHours"></div>
+                <div class="timeline-dividers-layer" id="timelineDividersLayer"></div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="nowLineMode">📍本地時間 來源</span>
+              </div>
+              <select class="styled-select" id="nowLineModeSelect" aria-label="Now Line Mode">
+                <option value="local" data-i18n="nowLineModeLocal">系統時間（預設）</option>
+                <option value="firstCity" data-i18n="nowLineModeFirstCity">第一個城市</option>
+              </select>
+            </div>
+          </section>
+
+          <!-- Card: 贊助與資訊 -->
+          <section class="settings-card sponsor-card" id="cardSponsor">
+            <div class="control-group sponsor-control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="sponsorCardTitle">贊助支持</span>
+                <span class="control-desc" data-i18n="sponsorDesc">喜歡 TimeMapper 嗎？歡迎請作者喝杯咖啡！</span>
+              </div>
+              <a href="https://github.com/sponsors/Amppa" target="_blank" rel="noopener noreferrer" class="sponsor-btn" data-i18n="sponsorBtn">☕ Buy me a coffee</a>
+            </div>
+          </section>
+
+          <footer class="footer">
+            <span class="version-label" id="versionLabel"></span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Bottom Navigation -->
+    <nav class="bottom-bar" aria-label="Primary">
+      <button class="bottom-bar-item is-active" type="button" data-view="home" aria-current="page" data-i18n="navHome">首頁</button>
+      <button class="bottom-bar-item" type="button" data-view="settings" data-i18n="mapSettings">設定</button>
+    </nav>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
