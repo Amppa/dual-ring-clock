@@ -59,12 +59,13 @@ export const CityPreview = {
       cancelAnimationFrame(autoScrollRaf);
       autoScrollRaf = null;
     }
-    if (refs.currentCitiesList) {
+    if (refs?.currentCitiesList) {
       refs.currentCitiesList.classList.remove("is-dragging-active");
     }
     document.querySelectorAll(".current-city-card").forEach((c) => {
       c.classList.remove("drag-over-top", "drag-over-bottom", "is-dragging");
       c.style.transform = "";
+      c.style.transition = "";
     });
     activePointerDrag = null;
     State.draggingId = null;
@@ -231,9 +232,17 @@ export const CityPreview = {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     if (activePointerDrag) return;
 
+    const cards = Array.from(refs.currentCitiesList?.querySelectorAll(".current-city-card") || []);
+    const startIndex = cards.indexOf(card);
+    if (startIndex === -1 || cards.length <= 1) return;
+
     e.preventDefault();
     const handle = e.currentTarget;
     handle.setPointerCapture?.(e.pointerId);
+
+    const slotHeight = cards.length > 1
+      ? (cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top)
+      : (card.offsetHeight + 6);
 
     activePointerDrag = {
       pointerId: e.pointerId,
@@ -244,8 +253,10 @@ export const CityPreview = {
       onReorder,
       startY: e.clientY,
       lastY: e.clientY,
-      targetId: null,
-      placeAfter: false
+      cards,
+      startIndex,
+      targetIndex: startIndex,
+      slotHeight,
     };
 
     State.draggingId = id;
@@ -264,8 +275,16 @@ export const CityPreview = {
     if (e.cancelable) e.preventDefault();
 
     drag.lastY = e.clientY;
-    drag.card.style.transform = `translateY(${e.clientY - drag.startY}px)`;
-    CityPreview._updateDropTarget();
+    const deltaY = e.clientY - drag.startY;
+    drag.card.style.transform = `translateY(${deltaY}px)`;
+
+    const offsetSlots = Math.round(deltaY / drag.slotHeight);
+    const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
+
+    if (targetIndex !== drag.targetIndex) {
+      drag.targetIndex = targetIndex;
+      CityPreview._updateSiblingDisplacements();
+    }
   },
 
   _onPointerDragEnd(e) {
@@ -274,33 +293,26 @@ export const CityPreview = {
     CityPreview._finishPointerDrag(e.type === "pointercancel");
   },
 
-  _updateDropTarget() {
+  _updateSiblingDisplacements() {
     const drag = activePointerDrag;
-    if (!drag || !drag.refs.currentCitiesList) return;
+    if (!drag) return;
 
-    const cards = Array.from(drag.refs.currentCitiesList.querySelectorAll(".current-city-card"))
-      .filter((card) => card !== drag.card);
+    const { cards, startIndex, targetIndex, slotHeight } = drag;
+    cards.forEach((c, i) => {
+      if (i === startIndex) return;
 
-    let target = null;
-    let placeAfter = true;
-    for (const card of cards) {
-      const rect = card.getBoundingClientRect();
-      if (drag.lastY < rect.top + rect.height / 2) {
-        target = card;
-        placeAfter = false;
-        break;
+      let shift = 0;
+      if (startIndex < targetIndex) {
+        if (i > startIndex && i <= targetIndex) {
+          shift = -slotHeight;
+        }
+      } else if (startIndex > targetIndex) {
+        if (i >= targetIndex && i < startIndex) {
+          shift = slotHeight;
+        }
       }
-      target = card;
-      placeAfter = true;
-    }
-
-    cards.forEach((card) => card.classList.remove("drag-over-top", "drag-over-bottom"));
-    drag.targetId = target ? target.dataset.id : null;
-    drag.placeAfter = placeAfter;
-
-    if (target) {
-      target.classList.add(placeAfter ? "drag-over-bottom" : "drag-over-top");
-    }
+      c.style.transform = shift ? `translateY(${shift}px)` : "";
+    });
   },
 
   _startAutoScroll() {
@@ -326,10 +338,17 @@ export const CityPreview = {
       if (delta !== 0) {
         const before = window.scrollY;
         window.scrollBy(0, delta);
-        if (window.scrollY !== before) {
-          drag.startY -= delta;
-          drag.card.style.transform = `translateY(${drag.lastY - drag.startY}px)`;
-          CityPreview._updateDropTarget();
+        const scrolled = window.scrollY - before;
+        if (scrolled !== 0) {
+          drag.startY -= scrolled;
+          const deltaY = drag.lastY - drag.startY;
+          drag.card.style.transform = `translateY(${deltaY}px)`;
+          const offsetSlots = Math.round(deltaY / drag.slotHeight);
+          const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
+          if (targetIndex !== drag.targetIndex) {
+            drag.targetIndex = targetIndex;
+            CityPreview._updateSiblingDisplacements();
+          }
         }
       }
 
@@ -351,49 +370,42 @@ export const CityPreview = {
       autoScrollRaf = null;
     }
     if (drag.handle?.hasPointerCapture?.(drag.pointerId)) {
-      drag.handle.releasePointerCapture(drag.pointerId);
+      try {
+        drag.handle.releasePointerCapture(drag.pointerId);
+      } catch (_) {}
     }
 
-    const { refs, onReorder, id, targetId, placeAfter } = drag;
-    const firstRects = new Map();
-    if (refs.currentCitiesList) {
-      refs.currentCitiesList.querySelectorAll(".current-city-card").forEach((card) => {
-        firstRects.set(card.dataset.id, card.getBoundingClientRect());
-      });
-    }
+    const { refs, onReorder, card, startIndex, targetIndex, slotHeight } = drag;
 
-    CityPreview.clearCardDragState(refs);
-
-    if (cancelled || !targetId || targetId === id) return;
-
-    const next = reorderIds(State.selectedIds, id, targetId, placeAfter);
-    if (next === State.selectedIds) return;
-
-    State.selectedIds = next;
-    State.saveSelection();
-
-    CityPreview.isReordering = true;
-    CityPreview.renderCurrentCitiesList(refs, onReorder);
-
-    if (refs.currentCitiesList) {
-      const DURATION = 250;
-      refs.currentCitiesList.querySelectorAll(".current-city-card").forEach((card) => {
-        const first = firstRects.get(card.dataset.id);
-        if (!first) return;
-        const deltaY = first.top - card.getBoundingClientRect().top;
-        if (deltaY !== 0 && typeof card.animate === "function") {
-          card.animate(
-            [{ transform: `translateY(${deltaY}px)` }, { transform: "translateY(0)" }],
-            { duration: DURATION, easing: "cubic-bezier(0.2, 0, 0, 1)" }
-          );
-        }
-      });
+    if (cancelled || targetIndex === startIndex) {
+      card.style.transition = "transform 0.15s ease-out";
+      card.style.transform = "";
       setTimeout(() => {
-        CityPreview.isReordering = false;
-      }, DURATION + 50);
+        CityPreview.clearCardDragState(refs);
+      }, 150);
+      return;
     }
 
-    if (typeof onReorder === "function") onReorder();
+    const finalShift = (targetIndex - startIndex) * slotHeight;
+    card.style.transition = "transform 0.15s cubic-bezier(0.2, 0, 0, 1)";
+    card.style.transform = `translateY(${finalShift}px)`;
+
+    setTimeout(() => {
+      CityPreview.clearCardDragState(refs);
+
+      const next = [...State.selectedIds];
+      const [removed] = next.splice(startIndex, 1);
+      next.splice(targetIndex, 0, removed);
+
+      State.selectedIds = next;
+      State.saveSelection();
+
+      CityPreview.isReordering = true;
+      CityPreview.renderCurrentCitiesList(refs, onReorder);
+      CityPreview.isReordering = false;
+
+      if (typeof onReorder === "function") onReorder();
+    }, 150);
   },
 
   /**

@@ -483,35 +483,14 @@ details[open]>.collapsible-summary::after {
 
 .current-city-card.is-dragging {
   z-index: 30;
-  opacity: 0.75;
+  opacity: 1;
   border-color: var(--input-focus-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   will-change: transform;
 }
 
-.current-city-card.drag-over-top::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  top: -5px;
-  height: 2px;
-  background-color: var(--input-focus-border);
-  border-radius: 1px;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.current-city-card.drag-over-bottom::after {
-  content: "";
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  bottom: -5px;
-  height: 2px;
-  background-color: var(--input-focus-border);
-  border-radius: 1px;
-  z-index: 10;
+.current-cities-list.is-dragging-active .current-city-card:not(.is-dragging) {
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
   pointer-events: none;
 }
 
