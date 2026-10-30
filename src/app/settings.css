@@ -471,8 +471,9 @@ body.embedded .sponsor-control-group .control-label {
 .current-city-card {
   position: relative;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) minmax(0, 1.6fr) 24px;
-  gap: 4px;
+  grid-template-columns: 20px 5.5em minmax(0, 1fr) 24px;
+  grid-template-areas: "handle name zone remove";
+  gap: 6px;
   padding: 5px 6px;
   align-items: center;
   border: 1px solid var(--divider);
@@ -481,6 +482,16 @@ body.embedded .sponsor-control-group .control-label {
   font-size: 11px;
   transition: none;
   user-select: none;
+}
+
+.add-city-card {
+  margin-top: 6px;
+  border-style: dashed;
+  background: var(--bg-card);
+}
+
+.add-city-card .add-card-placeholder {
+  pointer-events: none;
 }
 
 .current-city-card:hover {
@@ -838,26 +849,40 @@ body.embedded .add-city-search {
 /* Touch layout: a full-height handle column replaces the compact desktop one. */
 @media (pointer: coarse) {
   .current-city-card {
-    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-columns: 24px 5.5em minmax(0, 1fr) 28px;
     grid-template-areas:
       "handle name zone remove";
+    gap: 6px;
+    padding: 6px 8px;
   }
 
   .current-city-card .drag-handle {
     grid-area: handle;
-    width: 44px;
+    width: 24px;
     height: 100%;
-    font-size: 18px;
+    font-size: 16px;
     touch-action: none;
   }
 
-  .current-city-card .city-name-input { grid-area: name; }
-  .current-city-card .city-zone-select { grid-area: zone; min-width: 0; }
-  .current-city-card .remove-city-card-btn { grid-area: remove; align-self: center; }
+  .current-city-card .city-name-input {
+    grid-area: name;
+    width: 100%;
+    min-width: 0;
+  }
 
-  body.embedded .mobile-add-city-row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    grid-template-areas: "name zone";
+  .current-city-card .city-zone-select {
+    grid-area: zone;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .current-city-card .remove-city-card-btn {
+    grid-area: remove;
+    width: 28px;
+    height: 28px;
+    align-self: center;
+    justify-self: center;
+    font-size: 18px;
   }
 }
 

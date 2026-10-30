@@ -94,30 +94,11 @@
                 </div>
               </div>
               <div id="currentCitiesList" class="current-cities-list"></div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="current-city-card mobile-add-city-row" id="mobileAddCityRow">
-              <input id="mobileAddCityName" class="city-name-input" type="text" readonly aria-label="City name">
-              <select id="mobileAddCityZone" class="city-zone-select" aria-label="Timezone"></select>
-            </div>
-
-            <div class="control-group add-city-header">
-              <div class="control-label-wrap">
-                <span class="control-label" data-i18n="addCityTitle">新增城市</span>
-                <span class="control-desc" data-i18n="addCityDesc">最多顯示10個城市。</span>
-              </div>
-            </div>
-            <div class="add-city-search">
-              <div class="search-container">
-                <div class="search-bar-row">
-                  <input id="searchCityInput" type="text" placeholder="e.g. London"
-                    data-i18n-placeholder="searchPlaceholder" maxlength="40">
-                  <button id="searchCityBtn" type="button" data-i18n="searchBtn">搜尋</button>
-                </div>
-                <p id="searchStatus" class="search-status" role="status" aria-live="polite" hidden></p>
-                <div id="searchResultsList" class="search-results-list" hidden></div>
+              <div class="current-city-card add-city-card" id="addCityRow">
+                <div class="add-card-placeholder" aria-hidden="true"></div>
+                <input id="mobileAddCityName" class="city-name-input" type="text" readonly placeholder="" aria-label="City name">
+                <select id="mobileAddCityZone" class="city-zone-select" aria-label="Timezone"></select>
+                <div class="add-card-placeholder" aria-hidden="true"></div>
               </div>
             </div>
           </section>
@@ -303,7 +284,6 @@
             <div class="control-group sponsor-control-group">
               <div class="control-label-wrap">
                 <span class="control-label" data-i18n="sponsorCardTitle">贊助支持</span>
-                <span class="control-desc" data-i18n="sponsorDesc">喜歡 TimeMapper 嗎？歡迎請作者喝杯咖啡！</span>
               </div>
               <a href="https://github.com/sponsors/Amppa" target="_blank" rel="noopener noreferrer" class="sponsor-btn" data-i18n="sponsorBtn">☕ Buy me a coffee</a>
             </div>

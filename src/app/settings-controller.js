@@ -65,8 +65,11 @@ export const SettingsController = {
     });
 
     const mobileAddCityZone = document.getElementById("mobileAddCityZone");
+    const mobileAddCityName = document.getElementById("mobileAddCityName");
     if (mobileAddCityZone) {
-      mobileAddCityZone.disabled = State.selectedIds.length >= State.cityLimit;
+      const isFull = State.selectedIds.length >= State.cityLimit;
+      mobileAddCityZone.disabled = isFull;
+      if (mobileAddCityName) mobileAddCityName.disabled = isFull;
     }
   },
 
@@ -82,15 +85,40 @@ export const SettingsController = {
       if (!zoneToCity.has(city.zone)) zoneToCity.set(city.zone, city);
     });
 
+    const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
+      ? Intl.supportedValuesOf("timeZone")
+      : Array.from(zoneToCity.keys());
+
+    const allZones = Array.from(new Set([...zoneToCity.keys(), ...supportedZones]));
+    const now = new Date();
+    const zoneDetails = allZones.map((zone) => {
+      const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
+      const sign = offsetMins >= 0 ? "+" : "-";
+      const absMins = Math.abs(offsetMins);
+      const hours = Math.floor(absMins / 60);
+      const mins = absMins % 60;
+      const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
+      const cityName = zoneToCity.has(zone)
+        ? I18nUtils.getCityName(zoneToCity.get(zone))
+        : zone.split("/").pop().replace(/_/g, " ");
+      return { zone, offsetMins, label: `${zone} (${offsetStr})`, cityName };
+    });
+
+    zoneDetails.sort((a, b) => {
+      if (a.offsetMins !== b.offsetMins) return a.offsetMins - b.offsetMins;
+      return a.zone.localeCompare(b.zone);
+    });
+
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = I18nUtils.getTranslation("cityZonePlaceholder") || "-- Select Timezone --";
+    placeholder.textContent = I18nUtils.getTranslation("cityZonePlaceholder") || "選擇城市時區";
     mobileAddCityZone.appendChild(placeholder);
 
-    Array.from(zoneToCity.keys()).sort().forEach((zone) => {
+    zoneDetails.forEach((detail) => {
       const option = document.createElement("option");
-      option.value = zone;
-      option.textContent = zone;
+      option.value = detail.zone;
+      option.textContent = detail.label;
+      option.dataset.cityName = detail.cityName;
       mobileAddCityZone.appendChild(option);
     });
 
@@ -102,26 +130,34 @@ export const SettingsController = {
         return;
       }
 
-      const source = zoneToCity.get(zone);
-      if (!source) return;
+      const selectedOpt = mobileAddCityZone.selectedOptions[0];
+      const cityName = selectedOpt?.dataset?.cityName || (zoneToCity.get(zone) ? I18nUtils.getCityName(zoneToCity.get(zone)) : zone.split("/").pop().replace(/_/g, " "));
 
+      if (mobileAddCityName) {
+        mobileAddCityName.value = cityName;
+      }
+
+      const source = zoneToCity.get(zone);
       const newCity = {
         id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name: I18nUtils.getCityName(source),
+        name: cityName,
         zone,
-        x: MathUtils.clamp(source.x || 50, 0, 100),
-        y: MathUtils.clamp(source.y || 50, 0, 100),
-        lng: source.lng,
-        lat: source.lat
+        x: MathUtils.clamp(source?.x || 50, 0, 100),
+        y: MathUtils.clamp(source?.y || 50, 0, 100),
+        lng: source?.lng,
+        lat: source?.lat
       };
 
       State.customCities = [...State.customCities, newCity];
       State.saveCustomCities();
       State.toggleCity(newCity.id);
 
-      if (mobileAddCityName) mobileAddCityName.value = newCity.name;
-      mobileAddCityZone.value = "";
-      mobileAddCityZone.blur();
+      setTimeout(() => {
+        if (mobileAddCityName) mobileAddCityName.value = "";
+        mobileAddCityZone.value = "";
+        mobileAddCityZone.blur();
+      }, 300);
+
       this.renderCities();
       Renderer.render();
     });
@@ -129,11 +165,6 @@ export const SettingsController = {
 
   wireCities() {
     if (!this.cityRefs) return;
-    CityPreview.wireCitySearch(this.cityRefs, () => {
-      this.renderCities();
-      Renderer.render();
-    });
-
     CityPreview.wireResetButtons(this.cityRefs, () => {
       this.renderCities();
       Renderer.render();
