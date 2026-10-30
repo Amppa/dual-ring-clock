@@ -438,25 +438,8 @@ details[open]>.collapsible-summary::after {
 #cardAppearance {
   display: block;
 }
-}
 
-body.embedded .header-actions {
-  display: none;
-}
 
-body.embedded #cardPeriods {
-  display: none;
-}
-
-body.embedded .sponsor-control-group .control-desc {
-  display: none;
-}
-
-body.embedded .sponsor-control-group .control-label {
-  font-size: var(--font-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-}
 /* ==========================================================================
    Options Cities Stylesheet - TimeMapper
    City Management, Drag & Drop Reordering, Search & Selection
