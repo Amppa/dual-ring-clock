@@ -1,79 +1,50 @@
 # TimeMapper
 
-**English** | [繁體中文](README.zh-TW.md) | [Español](README.es.md)
-
-[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-TimeMapper-4285F4?style=flat&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/hlhcfeakjfdmgdlcfbpbblmlmobmljkf?utm_source=item-share-cb)
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ea4aaa?style=flat&logo=github-sponsors)](https://github.com/sponsors/Amppa)
-
-A Chrome extension popup for comparing time across timezones. Click cities on a world map and line up their days on a 24-hour timeline, so you can find a moment that works for everyone.
+一個用來比對多個時區時間的跨時區對齊工具。點擊世界地圖上的城市，把它們的一天並排在 24 小時時間軸上，快速找出大家都方便的時間。
 
 ---
 
-## Install
+## 快速使用
 
-### Chrome Web Store (Recommended)
+**選擇城市** — 點擊世界地圖上的任一圖釘，就能把該城市加到時間軸，再點一次即可移除。點擊地圖上的空白處，會以該處的 UTC 偏移（例如 `UTC+8`）新增一列。第一次開啟時會先預設選取東京、紐約、洛杉磯，以及你瀏覽器的本地時間。同時最多顯示 10 個城市。
 
-Install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/hlhcfeakjfdmgdlcfbpbblmlmobmljkf?utm_source=item-share-cb).
+**看時間軸** — 每一列是一個城市的 24 小時，直向的**現在線**標出此刻。`00` 那一格會同時顯示日期，方便看出城市在哪裡跨日。
 
-### Manual (Developer mode)
+**比對特定時刻** — 在時間軸上點一下就會放下一條對齊線（最多 4 條）。拖曳可以移動位置，點 `[x]` 可以移除。每一列都會即時顯示那個時刻在該城市是幾點。兩條相鄰的標記線（含現在線）之間會標出間隔長度，例如 `1.5h`。
 
-1. Download or clone this repository.
-2. Open Chrome and go to `chrome://extensions/`.
-3. Turn on **Developer mode** in the top-right corner.
-4. Click **Load unpacked** and select the root folder of this repository.
-5. Click the TimeMapper icon in the Chrome toolbar.
+**使用地圖** — 地圖可以顯示目前的夜間範圍、各時區的小時線，並在已選城市的圖釘上方顯示即時時間泡泡。只想要時間軸的話，地圖區塊可以收合。
 
 ---
 
-## How to use
+## 設定
 
-**Choose cities** — click any pin on the world map to add that city to the timeline; click it again to remove it. Clicking an empty spot on the map adds that UTC offset (e.g. `UTC+8`) as a new row. The first time you open the popup, Tokyo, New York, Los Angeles and your browser's local time are already selected. Up to 10 cities are shown at once.
+點擊底部導覽列的「設定」進入設定頁面：
 
-**Read the timeline** — each row is one city's 24-hour day, and the vertical **now line** marks this exact moment. The `00` cell also shows the date, so you can see where a city's day rolls over.
-
-**Compare a specific moment** — click anywhere on the timeline to drop an alignment line (up to four). Drag a line to move it, or click its `[x]` to remove it. Every row updates to show what time that moment is in that city. The gap between two neighbouring markers — including the now line — is labelled with its length (`1.5h`).
-
-**Use the map** — the map can shade the current night area, draw the hour lines for each timezone, and show a live time bubble above every selected city. The map panel collapses if you only want the timeline.
-
----
-
-## Settings
-
-Click the ⚙ button in the top bar to open the settings page. The language and theme pickers sit in the page header, and a live preview of the map and timeline stays pinned beside the settings as you edit.
-
-| Section | What you can do |
+| 區塊 | 可以做什麼 |
 | --- | --- |
-| **Cities** | Review every city currently on your timeline: rename it, switch its timezone, fine-tune its map coordinates, drag the handle to reorder, or remove it with `×`. Search by name to add a city that is not on the map, load the example set, or clear everything. Up to 10 cities. |
-| **Minimap** | Toggle the night area, hour lines and city time bubbles. |
-| **Map Texture** | Fine-tune the map's longitude/latitude offsets, width/height scale and vertical offset, then restore the defaults. |
-| **Time Periods** | Pick 2, 3 or 4 highlighted periods, then drag the handles on the 24-hour grid to set their hour ranges, or restore the defaults. Also choose what the now line is measured against (your browser's local time, or the first city). |
-
-Each period count ships with its own colour scheme for light and dark, so the bands stay readable when you switch theme. Core settings (cities, custom cities, periods, language, now-line reference) sync across devices via `chrome.storage.sync`, while appearance theme and map calibration remain in local `localStorage`.
+| **城市清單管理** | 檢視目前時間軸上的每個城市：修改名稱、切換時區、拖曳左側手柄調整順序（即時擠開位移動畫），或點 `×` 移除。可在下方快速新增城市，載入預設範例，或全部清除。最多 10 個城市。 |
+| **小地圖設定** | 開關夜間範圍、小時線與城市時間泡泡。 |
+| **小地圖貼圖設定** | 微調地圖的經度／緯度偏移、寬度／高度縮放與垂直偏移，並可一鍵恢復預設。 |
+| **時段設定** | 選擇要劃分 2、3 或 4 個時段，再於 24 小時格線上拖曳手柄調整各時段的起迄時間，或恢復預設。同時可設定現在線的基準（瀏覽器本地時間，或第一個城市的時間）。 |
 
 ---
 
-## A city that is not on the map
+## 地圖上沒有的城市
 
-Search for it in the **Cities** section of the settings page. Results come from the [Open-Meteo geocoding API](https://geocoding-api.open-meteo.com/), so searching needs a network connection. The city you pick is placed on the map from its own coordinates and remembered for next time.
+在設定頁的**城市清單管理**區塊搜尋即可。結果來自 [Open-Meteo 地理編碼 API](https://geocoding-api.open-meteo.com/)，所以搜尋需要網路連線。選取後會依該城市自己的座標放到地圖上，並記住供下次使用。
 
-To add a city permanently to the built-in list, edit `cityCatalog` in `src/shared/cities.js`. The constants that turn longitude/latitude into a map position are documented in the `PROJECTION` block at the top of `src/shared/config.js`.
+想把城市永久加進內建清單，請編輯 `src/shared/cities.js` 的 `cityCatalog`；經緯度轉換成地圖位置的常數寫在 `src/shared/config.js` 最上方的 `PROJECTION` 區塊。
 
 ---
 
-## Support / Sponsor
+## 贊助支持
 
-If you find TimeMapper helpful, consider supporting its development:
+如果你覺得 TimeMapper 對你有幫助，歡迎贊助支持開發：
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor_on_GitHub-%E2%9D%A4-ea4aaa?style=for-the-badge&logo=github-sponsors)](https://github.com/sponsors/Amppa)
 
 ---
 
-## Privacy
+## 隱私權政策
 
-TimeMapper does not collect or transmit any personal data. Read our full [Privacy Policy](PRIVACY.md).
-
----
-
-## Checking translations
-
-`node tools/check-i18n.mjs` verifies that the dictionaries in `src/shared/i18n.js` still cover every string the pages ask for. Run it after adding a UI string, a language, or a city.
+TimeMapper 不收集或傳輸任何個人隱私資料。完整聲明請參閱 [隱私權政策 (PRIVACY.md)](PRIVACY.md)。
