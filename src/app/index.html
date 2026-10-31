@@ -22,16 +22,18 @@
     <div id="clockView" class="view">
       <section class="clock-page">
         <div class="clock-face-wrap">
-          <svg id="clockDial" class="clock-dial" viewBox="0 0 200 200" role="img" aria-label="">
-            <circle class="clock-bezel" cx="100" cy="100" r="96"></circle>
+          <svg id="clockDial" class="clock-dial" viewBox="-30 -30 260 260" role="img" aria-label="">
+            <circle class="clock-bezel" cx="100" cy="100" r="126"></circle>
             <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
             <g id="clockTicks" aria-hidden="true"></g>
+            <g id="clockBadges" aria-hidden="true"></g>
             <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
+            <text id="clockInnerCityLabel" class="clock-ring-city-label" x="71.717" y="71.717" dy="0.35em" text-anchor="middle"></text>
+            <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="-6.066" y="-6.066" dy="0.35em" text-anchor="middle"></text>
             <line id="clockHourHand" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="52"></line>
-            <line id="clockMinuteHand" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="30"></line>
+            <line id="clockMinuteHand" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="34"></line>
             <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
           </svg>
-          <p class="clock-local-label" data-i18n="clockLocalTime">本地時間</p>
         </div>
         <section class="clock-cities" aria-labelledby="clockCitiesTitle">
           <h2 id="clockCitiesTitle" class="clock-section-title" data-i18n="clockSelectedCities">已選取的城市</h2>

@@ -16,13 +16,14 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding-top: 4px;
+  padding-top: 16px;
 }
 
 .clock-dial {
-  width: min(72vw, 320px);
+  width: min(94vw, 416px);
   aspect-ratio: 1;
   display: block;
+  overflow: visible;
 }
 
 .clock-bezel {
@@ -33,7 +34,6 @@
 
 .clock-ring {
   fill: none;
-  stroke-width: 12;
 }
 
 .clock-ring--day {
@@ -44,34 +44,31 @@
   stroke: var(--clock-ring-evening);
 }
 
-:root[data-theme="light"] .clock-tick--night {
-  stroke: rgba(255, 255, 255, 0.8);
-}
-
-:root[data-theme="light"] .clock-tick--night.clock-tick--major {
-  stroke: #ffffff;
-}
-
 .clock-tick {
-  stroke: var(--text-secondary);
+  stroke: var(--clock-tick);
   stroke-width: 1;
 }
 
-.clock-tick--major {
-  stroke: var(--text-primary);
-  stroke-width: 2;
+.clock-numeral-badge {
+  fill: var(--clock-badge-bg);
+}
+
+.clock-ring-city-label {
+  fill: var(--text-primary);
+  opacity: 0.5;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.clock-ring-city-label--outer {
+  font-size: 20px;
 }
 
 .clock-numeral {
-  fill: var(--text-secondary);
-  font-size: 10px;
+  fill: var(--clock-badge-ink);
+  font-size: 8.5px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-}
-
-.clock-numeral--major {
-  fill: var(--text-primary);
-  font-weight: 600;
 }
 
 .clock-hand {
@@ -90,12 +87,6 @@
 
 .clock-pivot {
   fill: var(--accent-solid);
-}
-
-.clock-local-label {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
-  letter-spacing: 0.08em;
 }
 
 .clock-cities {

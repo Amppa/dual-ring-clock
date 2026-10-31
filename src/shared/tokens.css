@@ -51,6 +51,9 @@
   --accent-solid: #0ea5e9;
   --clock-ring-day: #EEB422;
   --clock-ring-evening: #38302E;
+  --clock-badge-bg: #000000;
+  --clock-badge-ink: #ffffff;
+  --clock-tick: #000000;
 
   /* ------------------------------------------------------------------------
      4. Theme Palette: Dark (Default)
@@ -98,6 +101,9 @@
   --timezone-hover-bg: rgba(56, 189, 248, 0.18);
   --clock-ring-day: #EEB422;
   --clock-ring-evening: #38302E;
+  --clock-badge-bg: #000000;
+  --clock-badge-ink: #ffffff;
+  --clock-tick: #000000;
 }
 
 :root[data-theme="light"] {
@@ -125,6 +131,9 @@
   --timezone-hover-bg: rgba(245, 158, 11, 0.18);
   --clock-ring-day: #FFE7A3;
   --clock-ring-evening: #856C60;
+  --clock-badge-bg: #ffffff;
+  --clock-badge-ink: #1a1a1e;
+  --clock-tick: #ffffff;
 }
 
 /* ==========================================================================

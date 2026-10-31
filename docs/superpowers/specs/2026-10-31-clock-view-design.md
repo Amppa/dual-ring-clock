@@ -66,16 +66,18 @@ export const ClockView = {
 ```html
 <section class="clock-page">
   <div class="clock-face-wrap">
-    <svg id="clockDial" class="clock-dial" viewBox="0 0 200 200" role="img" aria-label="">
-      <circle class="clock-bezel" cx="100" cy="100" r="96"></circle>
+    <svg id="clockDial" class="clock-dial" viewBox="-30 -30 260 260" role="img" aria-label="">
+      <circle class="clock-bezel" cx="100" cy="100" r="126"></circle>
       <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
       <g id="clockTicks" aria-hidden="true"></g>
+      <g id="clockBadges" aria-hidden="true"></g>
       <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
+      <text id="clockInnerCityLabel" class="clock-ring-city-label" x="71.717" y="71.717" dy="0.35em" text-anchor="middle"></text>
+      <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="-6.066" y="-6.066" dy="0.35em" text-anchor="middle"></text>
       <line id="clockHourHand" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="52"></line>
-      <line id="clockMinuteHand" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="30"></line>
+      <line id="clockMinuteHand" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="34"></line>
       <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
     </svg>
-    <p class="clock-local-label" data-i18n="clockLocalTime">本地時間</p>
   </div>
   <section class="clock-cities" aria-labelledby="clockCitiesTitle">
     <h2 id="clockCitiesTitle" class="clock-section-title" data-i18n="clockSelectedCities">已選取的城市</h2>
@@ -84,30 +86,38 @@ export const ClockView = {
 </section>
 ```
 
-幾何常數（viewBox 200×200、圓心 `100,100`）：
+幾何常數（viewBox `-30 -30 260 260`、內容仍以 `100,100` 為圓心，四周多留 30 單位給外圈）：
 
 | 元素 | 參數 |
 |---|---|
 | 錶圈 | `r=96`，填 `--bg-card`，描邊 `--divider` 1px |
-| 時段環 | 圓環 `r=82`、寬 12（涵蓋 76–88，與 24/6/12/18 長刻度同寬），置於刻度後方：6.5–17.5 白天色、18.5–5.5 傍晚色（跨午夜）；17.5–18.5 與 5.5–6.5 各以 16 段 `color-mix()` 做白天↔傍晚漸層，不支援時退回起始色，無獨立中間色塊。色盤沿用時間軸：淺色 `#FFE7A3` / `#856C60`，深色 `#EEB422` / `#38302E` |
-| 小時刻度 | 24 個，外緣 `r=88`；24/6/12/18 內緣 `r=76`、線寬 2；其餘內緣 `r=82`、線寬 1；顏色 `--text-secondary`。淺色主題下 18–6 範圍的刻度改用淺色（`rgba(255,255,255,0.8)`，主刻度 `#ffffff`），避免在深色環上消失 |
-| 小時數字 | `r=68`，`font-size=10`，`text-anchor=middle`，垂直置中；頂端顯示 `24`；24/6/12/18 用 `--text-primary`，其餘 `--text-secondary` |
-| 時針 | `(100,100) → (100,52)`，`--text-primary`，線寬 5，圓端點 |
-| 分針 | `(100,100) → (100,30)`，`--accent-solid`，線寬 3，圓端點 |
+| 內圈時段環 | 圓環 `r=80`、寬 20（涵蓋 70–90，等於先前單圈），代表 `State.selectedIds[0]`，固定不旋轉：6.5–17.5 白天色、18.5–5.5 傍晚色（跨午夜）；17.5–18.5 與 5.5–6.5 各以 16 段 `color-mix()` 做白天↔傍晚漸層。色盤沿用時間軸：淺色 `#FFE7A3` / `#856C60`，深色 `#EEB422` / `#38302E` |
+| 外圈時段環 | 圓環 `r=104`、寬 20（涵蓋 94–114，與內圈等寬），代表 `State.selectedIds[1]`；整圈（色段、刻度、底盤、數字）依 `-(offset2 − offset1)/60` 小時旋轉，讓同一指針角度可讀第二城市時間。少於兩個城市時不畫 |
+| 小時刻度 | 每圈 24 個，各自從 `半徑 ± 寬/2` 貫穿色環；一律線寬 1；顏色 `--clock-tick`（淺色白、深色黑）。刻度先畫，數字圓盤再蓋住中段，形成被白／黑線切開的環 |
+| 數字底盤 | 每圈 24 個，`r=6.5`，圓心落在各圈半徑上，填 `--clock-badge-bg`（淺色白、深色黑），不超出該圈內緣 |
+| 小時數字 | 各圈半徑處，`font-size=8.5`，`text-anchor=middle`，以 `dy=0.35em` 對齊數字墨跡視覺中心；內圈頂端顯示 `24`；外圈數字隨環旋轉位置但文字保持直立；填 `--clock-badge-ink`（淺色深字、深色白字）、字重一致 |
+| 城市名標籤 | 固定在 21 點方向（315°）：內圈內部 `r=40` 顯示第一城市名；錶圈外側 `r=150` 顯示第二城市名。兩者 `font-size=20`、不壓縮，填 `--text-primary`、`opacity=0.5`；由 `_renderCityLabels()` 隨城市與語言更新 |
+| 時針 | `(100,100) → (100,52)`（長 48），`--text-primary`，線寬 5，圓端點 |
+| 分針 | `(100,100) → (100,34)`（長 66），`--accent-solid`，線寬 3，圓端點 |
 | 中心點 | `r=4.5`，填 `--accent-solid` |
 
-刻度與數字在 `init()` 以 JS 一次性生成：
+內圈 70–90、外圈 94–114，皆寬 20；內外圈間隔 4，外圈到錶圈 `r=126` 間隔 12。整體 viewBox 與 CSS 寬度一起放大，讓內圈維持先前單圈的視覺大小；指針顯示第一城市時間，內圈刻度因此是參考盤。內圈缺省（沒有已選城市）時退回裝置本地城市；第二城市不存在時只畫內圈。
+
+城市名標籤固定放在 21 點方向：第一城市名在內圈內部（`r=40`），第二城市名在**錶圈外側**（`r=150`，距外圈 36 單位、距錶圈 24 單位）。`r=150` 落在 SVG 方形盒的左上角落、已在圓形錶圈之外；SVG 設 `overflow: visible`，標籤若略超出盒邊會畫進頁面留白，時鐘本體不縮小。外圈標籤不壓縮，長名稱會向頁面左側延伸。
+
+刻度與數字由 `buildRingPaths()` / `buildRingScale()` 依半徑、寬度與偏移生成；只有 zone／offset 簽章改變時重建。
 
 ```js
-// 角度以正上方為 0、順時針為正
-const angle = (hour * 15) * Math.PI / 180;
+// 角度以正上方為 0、順時針為正；offsetHours 為該環的世界時旋轉
+const angle = ((hour + offsetHours) * 15) * Math.PI / 180;
 const x = 100 + radius * Math.sin(angle);
 const y = 100 - radius * Math.cos(angle);
 ```
 
-時針每分鐘更新，分針每秒更新：
+時針與分針都以第一城市的當地時間計算；時針每分鐘更新，分針每秒更新：
 
 ```js
+const { hours: h, minutes: m, seconds: s } = timePartsInZone(now, city1.zone);
 const hourAngle = ((h % 24) + m / 60) * 15;
 const minuteAngle = (m + s / 60) * 6;
 hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);
@@ -116,7 +126,8 @@ minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
 
 - 不加 CSS transition：分針每秒依秒數重算角度，視覺上連續掃動；時針每分鐘微動。若加 transition，整圈回繞時會反向補間，因此維持直接設定 `transform`。
 - `00:00` 兩針重疊，分針較長且為強調色，仍可辨識。
-- SVG `aria-label` 隨每次 tick 更新為「本地時間 HH:MM，24 小時制」。
+- SVG `aria-label` 隨每次 tick 更新為「城市 HH:MM，24 小時制」。
+- 內圈固定第一城市、外圈固定第二城市；外圈偏移 `Δ = (offset2 − offset1)/60` 小時，整圈旋轉 `−Δ`。DST 造成 offset 改變時，簽章變更並重建雙環。
 
 ## 6. 城市列規格
 
@@ -186,8 +197,9 @@ function dayOrdinal(date, zone) {
 |---|---|
 | `ClockView.init()` | 生成錶盤、首次 `render()` |
 | `showView("clock")` | `ClockView.render()` |
-| 每分鐘 ticker | `currentView === "clock"` 時 `render()`（時針微動、城市列） |
+| 每分鐘 ticker | `currentView === "clock"` 時 `render()`（時針微動、城市列、城市名標籤、必要時重建雙環） |
 | 每秒 ticker | `currentView === "clock"` 時 `tick()`（分針掃動） |
+| 城市／時區／offset 改變 | `_syncRings()` 比對 `zone|offset` 簽章，變更才重建雙環 |
 | `pageshow`（`event.persisted`） | 時鐘頁可見時 `render()`，修正休眠後的舊時間 |
 | 語言切換 | 發生在設定頁；切回時鐘頁時整份重繪 |
 | 主題切換 | 顏色全走 CSS 變數，不需重繪 |
@@ -199,18 +211,16 @@ function dayOrdinal(date, zone) {
 
 | key | zh | en | es |
 |---|---|---|---|
-| `clockLocalTime` | 本地時間 | Local time | Hora local |
 | `clockSelectedCities` | 已選取的城市 | Selected cities | Ciudades seleccionadas |
 | `clockEmptyCities` | 尚未選取城市，請到設定新增 | No cities selected. Add some in Settings. | Sin ciudades seleccionadas. Añádelas en Ajustes. |
-| `clockDialAriaLabel` | 本地時間 {time}，24 小時制 | Local time {time}, 24-hour clock | Hora local {time}, formato de 24 horas |
+| `clockDialAriaLabel` | {city} {time}，24 小時制 | {city} {time}, 24-hour clock | {city} {time}, formato de 24 horas |
 
-`clockDialAriaLabel` 透過 `I18nUtils.getTranslation("clockDialAriaLabel", { time })` 取值。
+`clockDialAriaLabel` 透過 `I18nUtils.getTranslation("clockDialAriaLabel", { city, time })` 取值。
 
 ## 9. 版面與樣式
 
 - `.clock-page`：`max-width: 560px`、左右自動置中、`display: flex`、`flex-direction: column`、`gap: 20px`。
-- `.clock-face-wrap`：垂直排列、置中；錶盤寬度 `min(72vw, 320px)`、`aspect-ratio: 1`。
-- `.clock-local-label`：`--font-xs`、`--text-secondary`、字距 `0.08em`。
+- `.clock-face-wrap`：垂直排列、置中、`padding-top: 16px`；錶盤寬度 `min(94vw, 416px)`、`aspect-ratio: 1`、`overflow: visible`。viewBox 保持 260，時鐘本體不因城市名而縮小。
 - `.clock-section-title`：`--font-md`、600、`--text-primary`。
 - `.clock-city-row`：`display: flex`、`align-items: center`、`justify-content: space-between`、`gap: 12px`、`padding: 14px 4px`、`border-top: 1px solid var(--divider)`；第一列無上邊框。
 - `.clock-city-meta`：`display: flex`、`align-items: center`、`flex-wrap: wrap`、`gap: 6px`、`min-width: 0`。
@@ -233,7 +243,7 @@ function dayOrdinal(date, zone) {
 依 `AGENTS.md`，不新增或執行自動化驗證。以 `npm run dev` → `http://127.0.0.1:4173/_dev` 手動確認：
 
 1. 三分頁切換正常，時鐘頁不再空白。
-2. 錶盤頂端顯示 24、其餘 1–23，24 個小時刻度，24 在正上方；時針與分針在已知時間（如系統 09:30）約略指向 9.5 與 6 點鐘方向。
+2. 內圈 24 在上方、外圈數字依第二城市時差旋轉；兩圈各有 24 個數字與刻度。指針顯示第一城市時間；以指針角度讀外圈可得到第二城市當地時間。21 點位置：內圈內部顯示第一城市名，外圈外側顯示第二城市名。
 3. 分針跨分時跳 6°，時針同步微動。
 4. 城市列順序與時間軸一致；時間皆為 `HH:MM` 24 小時制。
 5. 跨日城市顯示 `+1` / `−1`（例：本地台北晚上、紐約同日或前一日）。
