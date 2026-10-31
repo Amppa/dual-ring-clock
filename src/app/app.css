@@ -9,8 +9,11 @@ body {
 }
 
 /* Reserve the scrollbar gutter so switching views never shifts the centred
-   bottom bar horizontally when one view overflows and the other does not. */
+   bottom bar horizontally when one view overflows and the other does not.
+   Paint the root too: desktop browsers show the reserved gutter as a strip
+   when the root is transparent, while mobile WebViews use overlay scrollbars. */
 html {
+  background: var(--bg-primary);
   scrollbar-gutter: stable;
 }
 
