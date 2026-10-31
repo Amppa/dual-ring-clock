@@ -18,6 +18,7 @@ body {
   width: auto;
   min-height: 100dvh;
   margin: 0;
+  background: var(--bg-primary);
   padding:
     calc(env(safe-area-inset-top, 0px) + 6px)
     calc(env(safe-area-inset-right, 0px) + 8px)
