@@ -21,7 +21,26 @@
   display: flex;
 }
 
+/* Single pill that slides between the active items. It is positioned in CSS
+   pixels from app.js so labels of any width stay put. */
+.bottom-bar-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--btn-bg-hover);
+  pointer-events: none;
+}
+
+.bottom-bar.is-ready .bottom-bar-indicator {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .bottom-bar-item {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -38,11 +57,10 @@
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .bottom-bar-item.is-active {
-  background: var(--btn-bg-hover);
   color: var(--text-primary);
 }
 

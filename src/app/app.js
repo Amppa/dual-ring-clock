@@ -7,8 +7,21 @@ import { SettingsController } from "./settings-controller.js";
 
 const homeView = document.getElementById("homeView");
 const settingsView = document.getElementById("settingsView");
+const bottomBar = document.querySelector(".bottom-bar");
+const navIndicator = document.querySelector(".bottom-bar-indicator");
 const viewButtons = Array.from(document.querySelectorAll(".bottom-bar-item"));
 let currentView = "home";
+
+function syncNavIndicator() {
+  if (!bottomBar || !navIndicator) return;
+  const active = viewButtons.find((button) => button.classList.contains("is-active"));
+  if (!active) return;
+  const navRect = bottomBar.getBoundingClientRect();
+  const activeRect = active.getBoundingClientRect();
+  const borderLeft = parseFloat(getComputedStyle(bottomBar).borderLeftWidth) || 0;
+  navIndicator.style.width = `${activeRect.width}px`;
+  navIndicator.style.transform = `translateX(${activeRect.left - navRect.left - borderLeft}px)`;
+}
 
 function applyTheme() {
   if (globalThis.TimeMapperTheme) {
@@ -29,6 +42,7 @@ function showView(view) {
     if (active) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   });
+  syncNavIndicator();
 
   if (isSettings) {
     SettingsController.refresh();
@@ -72,6 +86,16 @@ async function init() {
       else closeSettings();
     });
   });
+
+  syncNavIndicator();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => bottomBar?.classList.add("is-ready"));
+  });
+  window.addEventListener("resize", syncNavIndicator);
+  if (typeof ResizeObserver === "function") {
+    const navResizeObserver = new ResizeObserver(syncNavIndicator);
+    viewButtons.forEach((button) => navResizeObserver.observe(button));
+  }
 
   window.addEventListener("popstate", (event) => {
     showView(event.state?.view === "settings" ? "settings" : "home");
