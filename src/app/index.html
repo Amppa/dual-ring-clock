@@ -17,8 +17,11 @@
 
 <body class="has-bottom-bar">
   <main class="app app-mobile">
-    <!-- View 1: Home (Map & Timeline) -->
-    <div id="homeView" class="view">
+    <!-- View 1: Clock (placeholder) -->
+    <div id="clockView" class="view"></div>
+
+    <!-- View 2: Timeline (Map & Timeline) -->
+    <div id="timelineView" class="view" hidden>
       <section class="map-panel">
         <div class="map-content">
           <div class="map-shell">
@@ -47,7 +50,7 @@
       </section>
     </div>
 
-    <!-- View 2: Settings & Cities (Native Single Page View) -->
+    <!-- View 3: Settings & Cities (Native Single Page View) -->
     <div id="settingsView" class="settings-view" hidden>
       <div class="container">
         <div class="settings-column">
@@ -296,11 +299,12 @@
       </div>
     </div>
 
-    <!-- Floating Bottom Navigation -->
+    <!-- Bottom Navigation -->
     <nav class="bottom-bar" aria-label="Primary">
       <span class="bottom-bar-indicator" aria-hidden="true"></span>
-      <button class="bottom-bar-item is-active" type="button" data-view="home" aria-current="page" data-i18n="navHome">首頁</button>
-      <button class="bottom-bar-item" type="button" data-view="settings" data-i18n="mapSettings">設定</button>
+      <button class="bottom-bar-item is-active" type="button" data-view="clock" aria-current="page" data-i18n="navClock">時鐘</button>
+      <button class="bottom-bar-item" type="button" data-view="timeline" data-i18n="navTimeline">時間軸</button>
+      <button class="bottom-bar-item" type="button" data-view="settings" data-i18n="navSettings">設定</button>
     </nav>
   </main>
   <script type="module" src="app.js"></script>

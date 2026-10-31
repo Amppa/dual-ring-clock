@@ -5,12 +5,14 @@ import { TimelinePreview } from "../shared/timeline-preview.js";
 import { MapPreview } from "../shared/map-preview.js";
 import { SettingsController } from "./settings-controller.js";
 
-const homeView = document.getElementById("homeView");
+const clockView = document.getElementById("clockView");
+const timelineView = document.getElementById("timelineView");
 const settingsView = document.getElementById("settingsView");
+const views = { clock: clockView, timeline: timelineView, settings: settingsView };
 const bottomBar = document.querySelector(".bottom-bar");
 const navIndicator = document.querySelector(".bottom-bar-indicator");
 const viewButtons = Array.from(document.querySelectorAll(".bottom-bar-item"));
-let currentView = "home";
+let currentView = "clock";
 
 function syncNavIndicator() {
   if (!bottomBar || !navIndicator) return;
@@ -31,35 +33,30 @@ function applyTheme() {
 }
 
 function showView(view) {
-  currentView = view;
-  const isSettings = view === "settings";
-  homeView.hidden = isSettings;
-  settingsView.hidden = !isSettings;
+  currentView = views[view] ? view : "clock";
+  Object.entries(views).forEach(([name, el]) => {
+    el.hidden = name !== currentView;
+  });
 
   viewButtons.forEach((button) => {
-    const active = button.dataset.view === view;
+    const active = button.dataset.view === currentView;
     button.classList.toggle("is-active", active);
     if (active) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
   });
   syncNavIndicator();
 
-  if (isSettings) {
+  if (currentView === "settings") {
     SettingsController.refresh();
-  } else {
+  } else if (currentView === "timeline") {
     Renderer.render();
   }
 }
 
-function openSettings() {
-  if (currentView === "settings") return;
-  history.pushState({ view: "settings" }, "", location.href);
-  showView("settings");
-}
-
-function closeSettings() {
-  if (currentView !== "settings") return;
-  history.back();
+function setView(view) {
+  if (!views[view] || currentView === view) return;
+  history.pushState({ view }, "", location.href);
+  showView(view);
 }
 
 async function init() {
@@ -82,8 +79,7 @@ async function init() {
 
   viewButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      if (button.dataset.view === "settings") openSettings();
-      else closeSettings();
+      setView(button.dataset.view);
     });
   });
 
@@ -98,7 +94,7 @@ async function init() {
   }
 
   window.addEventListener("popstate", (event) => {
-    showView(event.state?.view === "settings" ? "settings" : "home");
+    showView(event.state?.view || "clock");
   });
 
   window.addEventListener("pageshow", (event) => {
@@ -116,11 +112,11 @@ async function init() {
     Renderer.render();
   });
 
-  history.replaceState({ view: "home" }, "", location.href);
+  history.replaceState({ view: "clock" }, "", location.href);
 
   // Minute ticker for current time & now-line
   setInterval(() => {
-    if (currentView === "home") Renderer.render();
+    if (currentView === "timeline") Renderer.render();
   }, 60 * 1000);
 }
 

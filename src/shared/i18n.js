@@ -1,8 +1,9 @@
 export const i18nTranslations = {
   zh: {
     nowTextLoading: "正在讀取目前時間",
-    mapSettings: "設定",
-    navHome: "首頁",
+    navClock: "時鐘",
+    navTimeline: "時間軸",
+    navSettings: "設定",
     longitude: "➡️ 經度偏移",
     latitude: "⬆️ 緯度偏移",
     width: "↔️ 寬度縮放",
@@ -68,8 +69,9 @@ export const i18nTranslations = {
   },
   en: {
     nowTextLoading: "Loading current time...",
-    mapSettings: "Settings",
-    navHome: "Home",
+    navClock: "Clock",
+    navTimeline: "Timeline",
+    navSettings: "Settings",
     longitude: "➡️ Longitude Offset",
     latitude: "⬆️ Latitude Offset",
     width: "↔️ Width Scale",
@@ -135,8 +137,9 @@ export const i18nTranslations = {
   },
   es: {
     nowTextLoading: "Cargando la hora actual...",
-    mapSettings: "Ajustes",
-    navHome: "Inicio",
+    navClock: "Reloj",
+    navTimeline: "Cronología",
+    navSettings: "Ajustes",
     longitude: "➡️ Desplazamiento de longitud",
     latitude: "⬆️ Desplazamiento de latitud",
     width: "↔️ Escala de ancho",
