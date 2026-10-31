@@ -10,10 +10,12 @@
 
   function apply(theme) {
     const value = theme === 'light' || theme === 'dark' ? theme : 'auto';
-    document.documentElement.dataset.theme = resolve(value);
+    const resolved = resolve(value);
+    document.documentElement.dataset.theme = resolved;
     try {
       localStorage.setItem('theme', value);
     } catch { }
+    window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: value, resolved } }));
   }
 
   // Instant pass from synchronous cache

@@ -200,9 +200,6 @@ export const SettingsController = {
         if (globalThis.TimeMapperTheme) {
           globalThis.TimeMapperTheme.apply(themeSelect.value);
         }
-        this.renderAppearance();
-        this.renderPeriodControls();
-        Renderer.render();
       });
     }
   },

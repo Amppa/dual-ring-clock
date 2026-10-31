@@ -84,6 +84,14 @@ async function init() {
     }
   });
 
+  window.addEventListener("themechange", () => {
+    if (currentView === "settings") {
+      SettingsController.renderAppearance();
+      SettingsController.renderPeriodControls();
+    }
+    Renderer.render();
+  });
+
   history.replaceState({ view: "home" }, "", location.href);
 
   // Minute ticker for current time & now-line
