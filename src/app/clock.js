@@ -87,8 +87,8 @@ export const ClockView = {
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
-    const hourAngle = ((hours % 24) + minutes / 60 + seconds / 3600) * HOUR_STEP_DEG;
-    const minuteAngle = minutes * 6;
+    const hourAngle = ((hours % 24) + minutes / 60) * HOUR_STEP_DEG;
+    const minuteAngle = (minutes + seconds / 60) * 6;
 
     this._refs.hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);
     this._refs.minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);

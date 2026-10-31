@@ -2,7 +2,7 @@
 
 - 日期：2026-10-31
 - 分支：`feat/clock-view`
-- 狀態：已核准並實作；走針方式於 2026-10-31 調整為時針連續掃動
+- 狀態：已核准並實作；走針方式於 2026-10-31 調整為分針連續掃動
 
 ## 1. 背景與目標
 
@@ -29,7 +29,7 @@
 | 數字 | 0–23 全標 |
 | 刻度 | 24 個小時刻度，無分鐘刻度 |
 | 指針 | 時針＋分針，無秒針 |
-| 走針 | 分針每分鐘跳 6°；時針每秒更新、連續掃動 |
+| 走針 | 時針每分鐘微動 0.25°；分針每秒依秒數連續掃動 |
 | 城市列內容 | 城市名＋日期（跨日標 `+1` / `−1`）＋大字 `HH:MM` |
 | 時間格式 | `hourCycle: "h23"`（`00:00`–`23:59`，避免 `24:00`） |
 | 空清單 | 顯示提示文字 |
@@ -57,7 +57,7 @@ export const ClockView = {
 };
 ```
 
-`app.js` 的每分鐘 ticker 在 `currentView === "clock"` 時呼叫 `ClockView.render()`；另有一個每秒 ticker 只更新時針（`ClockView.tick()`）。不建立額外事件匯流排；語言／城市變更都發生在設定頁，切回時鐘頁時的 `render()` 自然拿到最新資料。
+`app.js` 的每分鐘 ticker 在 `currentView === "clock"` 時呼叫 `ClockView.render()`；另有一個每秒 ticker 呼叫 `ClockView.tick()`，讓分針連續掃動、時針角度維持每分鐘微動。不建立額外事件匯流排；語言／城市變更都發生在設定頁，切回時鐘頁時的 `render()` 自然拿到最新資料。
 
 ## 5. 錶盤規格
 
@@ -103,18 +103,18 @@ const x = 100 + radius * Math.sin(angle);
 const y = 100 - radius * Math.cos(angle);
 ```
 
-指針角度每分鐘更新：
+時針每分鐘更新，分針每秒更新：
 
 ```js
-const hourAngle = ((h % 24) + m / 60 + s / 3600) * 15;
-const minuteAngle = m * 6;
+const hourAngle = ((h % 24) + m / 60) * 15;
+const minuteAngle = (m + s / 60) * 6;
 hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);
 minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
 ```
 
-- 不加 CSS transition：時針每秒依秒數重算角度，視覺上連續掃動；分針整分跳動。若加 transition，午夜角度由 360° 回到 0° 時會反向補間，因此維持直接設定 `transform`。
+- 不加 CSS transition：分針每秒依秒數重算角度，視覺上連續掃動；時針每分鐘微動。若加 transition，整圈回繞時會反向補間，因此維持直接設定 `transform`。
 - `00:00` 兩針重疊，分針較長且為強調色，仍可辨識。
-- SVG `aria-label` 每分鐘更新為「本地時間 HH:MM，24 小時制」。
+- SVG `aria-label` 隨每次 tick 更新為「本地時間 HH:MM，24 小時制」。
 
 ## 6. 城市列規格
 
@@ -184,8 +184,8 @@ function dayOrdinal(date, zone) {
 |---|---|
 | `ClockView.init()` | 生成錶盤、首次 `render()` |
 | `showView("clock")` | `ClockView.render()` |
-| 每分鐘 ticker | `currentView === "clock"` 時 `render()`（分針、城市列） |
-| 每秒 ticker | `currentView === "clock"` 時 `tick()`（只更新時針） |
+| 每分鐘 ticker | `currentView === "clock"` 時 `render()`（時針微動、城市列） |
+| 每秒 ticker | `currentView === "clock"` 時 `tick()`（分針掃動） |
 | `pageshow`（`event.persisted`） | 時鐘頁可見時 `render()`，修正休眠後的舊時間 |
 | 語言切換 | 發生在設定頁；切回時鐘頁時整份重繪 |
 | 主題切換 | 顏色全走 CSS 變數，不需重繪 |
