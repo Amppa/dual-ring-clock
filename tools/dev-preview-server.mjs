@@ -35,22 +35,23 @@ const harness = `<!doctype html>
     margin: 0;
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     background: #15151a;
     color: #e6e6e6;
     font: 13px/1.4 system-ui, sans-serif;
   }
-  header {
+  aside {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 16px;
-    border-bottom: 1px solid #2c2c33;
+    flex-direction: column;
+    gap: 18px;
+    flex: 0 0 auto;
+    width: 220px;
+    padding: 14px;
+    border-right: 1px solid #2c2c33;
     background: #1b1b21;
   }
-  .brand { font-weight: 700; letter-spacing: .3px; margin-right: 8px; }
-  .group { display: flex; align-items: center; gap: 6px; }
+  .brand { font-weight: 700; letter-spacing: .3px; }
+  .group { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
   .group span { color: #9a9aa5; }
   button {
     min-height: 30px;
@@ -63,7 +64,7 @@ const harness = `<!doctype html>
     cursor: pointer;
   }
   button:hover { border-color: #5a5a68; }
-  button.active { background: #e6e6e6; color: #15151a; border-color: #e6e6e6; }
+  button[aria-pressed="true"] { background: #e6e6e6; color: #15151a; border-color: #e6e6e6; }
   select {
     min-height: 30px;
     padding: 0 8px;
@@ -92,12 +93,8 @@ const harness = `<!doctype html>
 </style>
 </head>
 <body>
-<header>
+<aside>
   <div class="brand">TimeMapper Android</div>
-  <div class="group" id="views">
-    <button type="button" data-view="home" class="active">首頁</button>
-    <button type="button" data-view="settings">設定</button>
-  </div>
   <div class="group" id="devices">
     <span>Device</span>
     <select id="device" aria-label="Device preset">
@@ -109,36 +106,32 @@ const harness = `<!doctype html>
     </select>
   </div>
   <div class="group">
+    <button type="button" id="dark" aria-pressed="false">深色</button>
+  </div>
+  <div class="group">
     <button type="button" id="reload">Reload</button>
   </div>
-</header>
+</aside>
 <main>
   <iframe id="frame" src="/src/app/index.html" title="Android preview"></iframe>
 </main>
 <script>
   const frame = document.getElementById("frame");
-  const viewButtons = document.querySelectorAll("#views button");
-  let ready = false;
+  const darkToggle = document.getElementById("dark");
 
-  const syncView = () => {
-    if (!ready) return;
-    const view = frame.contentWindow.history.state?.view === "settings" ? "settings" : "home";
-    viewButtons.forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+  const isDark = () => frame.contentDocument?.documentElement.dataset.theme === "dark";
+
+  const syncTheme = () => {
+    darkToggle.setAttribute("aria-pressed", String(isDark()));
   };
 
-  frame.addEventListener("load", () => {
-    ready = true;
-    syncView();
-  });
+  frame.addEventListener("load", syncTheme);
 
-  viewButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!ready) return;
-      const target = frame.contentDocument.querySelector('.bottom-bar-item[data-view="' + button.dataset.view + '"]');
-      if (!target) return;
-      target.click();
-      setTimeout(syncView, 120);
-    });
+  darkToggle.addEventListener("click", () => {
+    if (!frame.contentDocument || !frame.contentWindow.TimeMapperTheme) return;
+    const next = isDark() ? "light" : "dark";
+    frame.contentWindow.TimeMapperTheme.apply(next);
+    darkToggle.setAttribute("aria-pressed", String(next === "dark"));
   });
 
   const devicePresets = {
@@ -163,7 +156,6 @@ const harness = `<!doctype html>
   applyDevice();
 
   document.getElementById("reload").addEventListener("click", () => {
-    ready = false;
     frame.src = frame.src;
   });
 </script>
