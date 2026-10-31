@@ -9,7 +9,7 @@ const isWin = process.platform === "win32";
 
 const apkRelPath = path.join("android", "app", "build", "outputs", "apk", "debug", "app-debug.apk");
 const apkFullPath = path.join(root, apkRelPath);
-const appId = "io.github.flow2000.timemapper";
+const appId = "com.amppa.timemapper";
 
 function run(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
