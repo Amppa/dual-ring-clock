@@ -8,7 +8,7 @@
 
 三分頁底部導覽中的「時鐘」頁目前是空佔位（`src/app/index.html` 的 `#clockView`）。本設計填入兩個區塊：
 
-1. **24 小時實體錶盤**：以裝置系統本地時間為準，具時針、分針與 0–23 小時標尺。
+1. **24 小時實體錶盤**：以裝置系統本地時間為準，具時針、分針與 24 小時標尺（頂端顯示 24）。
 2. **已選城市時間牆**：依 `State.selectedIds` 列出城市名稱、日期，以及該城市當地 24 小時時間（大字）。
 
 錶盤永遠代表裝置本地時間，不隨城市列變動；城市列為唯讀資訊。
@@ -26,7 +26,7 @@
 | 項目 | 決定 |
 |---|---|
 | 錶盤方向 | 0 在正上方，順時針遞增 0→23 |
-| 數字 | 0–23 全標 |
+| 數字 | 頂端顯示 24，其餘 1–23 |
 | 刻度 | 24 個小時刻度，無分鐘刻度 |
 | 指針 | 時針＋分針，無秒針 |
 | 走針 | 時針每分鐘微動 0.25°；分針每秒依秒數連續掃動 |
@@ -68,6 +68,7 @@ export const ClockView = {
   <div class="clock-face-wrap">
     <svg id="clockDial" class="clock-dial" viewBox="0 0 200 200" role="img" aria-label="">
       <circle class="clock-bezel" cx="100" cy="100" r="96"></circle>
+      <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
       <g id="clockTicks" aria-hidden="true"></g>
       <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
       <line id="clockHourHand" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="52"></line>
@@ -88,8 +89,9 @@ export const ClockView = {
 | 元素 | 參數 |
 |---|---|
 | 錶圈 | `r=96`，填 `--bg-card`，描邊 `--divider` 1px |
-| 小時刻度 | 24 個，外緣 `r=88`；0/6/12/18 內緣 `r=76`、線寬 2；其餘內緣 `r=82`、線寬 1；顏色 `--text-secondary` |
-| 小時數字 | `r=68`，`font-size=10`，`text-anchor=middle`，垂直置中；0/6/12/18 用 `--text-primary`，其餘 `--text-secondary` |
+| 時段環 | 圓環 `r=82`、寬 12（涵蓋 76–88，與 24/6/12/18 長刻度同寬），置於刻度後方：6.5–17.5 白天色、18.5–5.5 傍晚色（跨午夜）；17.5–18.5 與 5.5–6.5 各以 16 段 `color-mix()` 做白天↔傍晚漸層，不支援時退回起始色，無獨立中間色塊。色盤沿用時間軸：淺色 `#FFE7A3` / `#856C60`，深色 `#EEB422` / `#38302E` |
+| 小時刻度 | 24 個，外緣 `r=88`；24/6/12/18 內緣 `r=76`、線寬 2；其餘內緣 `r=82`、線寬 1；顏色 `--text-secondary`。淺色主題下 18–6 範圍的刻度改用淺色（`rgba(255,255,255,0.8)`，主刻度 `#ffffff`），避免在深色環上消失 |
+| 小時數字 | `r=68`，`font-size=10`，`text-anchor=middle`，垂直置中；頂端顯示 `24`；24/6/12/18 用 `--text-primary`，其餘 `--text-secondary` |
 | 時針 | `(100,100) → (100,52)`，`--text-primary`，線寬 5，圓端點 |
 | 分針 | `(100,100) → (100,30)`，`--accent-solid`，線寬 3，圓端點 |
 | 中心點 | `r=4.5`，填 `--accent-solid` |
@@ -142,7 +144,7 @@ minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
 
 - 使用 `TimeUtils.getFormatter(locale, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" })`。
 - `locale` 取 `I18nUtils.getLocale() || "en-US"`。
-- 明確用 `h23`，避免部分語系在午夜輸出 `24:00`，與錶盤 0–23 衝突。
+- 明確用 `h23`，避免部分語系在午夜輸出 `24:00`，與錶盤的 24 小時標尺衝突。
 
 日期：
 
@@ -231,7 +233,7 @@ function dayOrdinal(date, zone) {
 依 `AGENTS.md`，不新增或執行自動化驗證。以 `npm run dev` → `http://127.0.0.1:4173/_dev` 手動確認：
 
 1. 三分頁切換正常，時鐘頁不再空白。
-2. 錶盤數字 0–23、24 個小時刻度、0 在正上方；時針與分針在已知時間（如系統 09:30）約略指向 9.5 與 6 點鐘方向。
+2. 錶盤頂端顯示 24、其餘 1–23，24 個小時刻度，24 在正上方；時針與分針在已知時間（如系統 09:30）約略指向 9.5 與 6 點鐘方向。
 3. 分針跨分時跳 6°，時針同步微動。
 4. 城市列順序與時間軸一致；時間皆為 `HH:MM` 24 小時制。
 5. 跨日城市顯示 `+1` / `−1`（例：本地台北晚上、紐約同日或前一日）。

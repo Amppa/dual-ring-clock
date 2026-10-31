@@ -31,6 +31,27 @@
   stroke-width: 1;
 }
 
+.clock-ring {
+  fill: none;
+  stroke-width: 12;
+}
+
+.clock-ring--day {
+  stroke: var(--clock-ring-day);
+}
+
+.clock-ring--evening {
+  stroke: var(--clock-ring-evening);
+}
+
+:root[data-theme="light"] .clock-tick--night {
+  stroke: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-theme="light"] .clock-tick--night.clock-tick--major {
+  stroke: #ffffff;
+}
+
 .clock-tick {
   stroke: var(--text-secondary);
   stroke-width: 1;

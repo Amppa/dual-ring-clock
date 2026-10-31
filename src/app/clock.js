@@ -7,6 +7,16 @@ import { TimeUtils, I18nUtils, EscapeUtils } from "../shared/utils.js";
 
 const DIAL_CENTER = 100;
 const HOUR_STEP_DEG = 15;
+const RING_RADIUS = 82;
+const RING_GRADIENT_STEPS = 16;
+const RING_SOLIDS = [
+  { start: 6.5, end: 17.5, className: "clock-ring--day" },
+  { start: 18.5, end: 5.5, className: "clock-ring--evening" }
+];
+const RING_TRANSITIONS = [
+  { start: 17.5, end: 18.5, from: "day", to: "evening" },
+  { start: 5.5, end: 6.5, from: "evening", to: "day" }
+];
 
 function polarPoint(radius, angle) {
   const rad = (angle * Math.PI) / 180;
@@ -14,6 +24,14 @@ function polarPoint(radius, angle) {
     x: DIAL_CENTER + radius * Math.sin(rad),
     y: DIAL_CENTER - radius * Math.cos(rad)
   };
+}
+
+function ringArc(startHour, endHour) {
+  const start = polarPoint(RING_RADIUS, startHour * HOUR_STEP_DEG);
+  const end = polarPoint(RING_RADIUS, endHour * HOUR_STEP_DEG);
+  const hours = (endHour - startHour + 24) % 24;
+  const largeArc = hours > 12 ? 1 : 0;
+  return `M ${start.x} ${start.y} A ${RING_RADIUS} ${RING_RADIUS} 0 ${largeArc} 1 ${end.x} ${end.y}`;
 }
 
 function dayOrdinal(date, zone) {
@@ -36,15 +54,36 @@ export const ClockView = {
     if (!dial) return;
     this._refs = {
       dial,
+      ring: document.getElementById("clockRing"),
       ticks: document.getElementById("clockTicks"),
       numerals: document.getElementById("clockNumerals"),
       hourHand: document.getElementById("clockHourHand"),
       minuteHand: document.getElementById("clockMinuteHand"),
       cityList: document.getElementById("clockCityList")
     };
+    this._buildRing();
     this._buildDial();
     this._localZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     this.render();
+  },
+
+  _buildRing() {
+    const paths = RING_SOLIDS.map(
+      ({ start, end, className }) => `<path class="${className}" d="${ringArc(start, end)}"></path>`
+    );
+
+    RING_TRANSITIONS.forEach(({ start, end, from, to }) => {
+      const step = (end - start) / RING_GRADIENT_STEPS;
+      for (let i = 0; i < RING_GRADIENT_STEPS; i += 1) {
+        const mix = Math.round(((i + 0.5) / RING_GRADIENT_STEPS) * 100);
+        const stroke = `color-mix(in srgb, var(--clock-ring-${to}) ${mix}%, var(--clock-ring-${from}))`;
+        paths.push(
+          `<path d="${ringArc(start + step * i, start + step * (i + 1))}" style="stroke: var(--clock-ring-${from}); stroke: ${stroke}"></path>`
+        );
+      }
+    });
+
+    this._refs.ring.innerHTML = paths.join("");
   },
 
   _buildDial() {
@@ -55,15 +94,17 @@ export const ClockView = {
     for (let hour = 0; hour < 24; hour += 1) {
       const angle = hour * HOUR_STEP_DEG;
       const major = hour % 6 === 0;
+      const night = hour >= 18 || hour <= 6;
       const outer = polarPoint(88, angle);
       const inner = polarPoint(major ? 76 : 82, angle);
       tickParts.push(
-        `<line class="clock-tick${major ? " clock-tick--major" : ""}" x1="${outer.x}" y1="${outer.y}" x2="${inner.x}" y2="${inner.y}"></line>`
+        `<line class="clock-tick${major ? " clock-tick--major" : ""}${night ? " clock-tick--night" : ""}" x1="${outer.x}" y1="${outer.y}" x2="${inner.x}" y2="${inner.y}"></line>`
       );
 
       const label = polarPoint(68, angle);
+      const labelText = hour === 0 ? 24 : hour;
       numeralParts.push(
-        `<text class="clock-numeral${major ? " clock-numeral--major" : ""}" x="${label.x}" y="${label.y}" text-anchor="middle" dominant-baseline="central">${hour}</text>`
+        `<text class="clock-numeral${major ? " clock-numeral--major" : ""}" x="${label.x}" y="${label.y}" text-anchor="middle" dominant-baseline="central">${labelText}</text>`
       );
     }
 
