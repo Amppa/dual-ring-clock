@@ -4,6 +4,7 @@ import { I18nUtils } from "../shared/utils.js";
 import { TimelinePreview } from "../shared/timeline-preview.js";
 import { MapPreview } from "../shared/map-preview.js";
 import { SettingsController } from "./settings-controller.js";
+import { ClockView } from "./clock.js";
 
 const clockView = document.getElementById("clockView");
 const timelineView = document.getElementById("timelineView");
@@ -50,6 +51,8 @@ function showView(view) {
     SettingsController.refresh();
   } else if (currentView === "timeline") {
     Renderer.render();
+  } else if (currentView === "clock") {
+    ClockView.render();
   }
 }
 
@@ -65,6 +68,7 @@ async function init() {
   I18nUtils.applyAttributes();
 
   Renderer.render();
+  ClockView.init();
   SettingsController.init();
 
   TimelinePreview.wireScrub(TimelinePreview.collectRefs(document), {
@@ -101,6 +105,7 @@ async function init() {
     if (event.persisted) {
       applyTheme();
       Renderer.render();
+      if (currentView === "clock") ClockView.render();
     }
   });
 
@@ -114,10 +119,19 @@ async function init() {
 
   history.replaceState({ view: "clock" }, "", location.href);
 
-  // Minute ticker for current time & now-line
-  setInterval(() => {
+  function tickMinute() {
     if (currentView === "timeline") Renderer.render();
-  }, 60 * 1000);
+    else if (currentView === "clock") ClockView.render();
+  }
+
+  function scheduleMinuteTick() {
+    const delay = 60 * 1000 - (Date.now() % (60 * 1000));
+    setTimeout(() => {
+      tickMinute();
+      scheduleMinuteTick();
+    }, delay);
+  }
+  scheduleMinuteTick();
 }
 
 init();
