@@ -78,10 +78,16 @@ export const ClockView = {
     this._renderCityList(now);
   },
 
+  tick() {
+    if (!this._refs) return;
+    this._renderHands(new Date());
+  },
+
   _renderHands(now) {
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    const hourAngle = ((hours % 24) + minutes / 60) * HOUR_STEP_DEG;
+    const seconds = now.getSeconds();
+    const hourAngle = ((hours % 24) + minutes / 60 + seconds / 3600) * HOUR_STEP_DEG;
     const minuteAngle = minutes * 6;
 
     this._refs.hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);

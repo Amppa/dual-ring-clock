@@ -132,6 +132,10 @@ async function init() {
     }, delay);
   }
   scheduleMinuteTick();
+
+  setInterval(() => {
+    if (currentView === "clock") ClockView.tick();
+  }, 1000);
 }
 
 init();
