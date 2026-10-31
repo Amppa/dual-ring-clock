@@ -38,11 +38,12 @@
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .bottom-bar-item.is-active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  background: var(--btn-bg-hover);
+  color: var(--text-primary);
 }
 
 body.keyboard-open .bottom-bar {
