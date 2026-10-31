@@ -1,19 +1,19 @@
-/* Floating navigation for the Android app shell. Hidden unless the page opts
+/* Bottom navigation bar for the Android app shell. Hidden unless the page opts
    in with .has-bottom-bar, so the extension keeps its desktop layout. */
 .bottom-bar {
   display: none;
   position: fixed;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 60;
-  align-items: center;
+  align-items: stretch;
   gap: 4px;
   padding: 5px;
-  border: 1px solid var(--divider);
-  border-radius: 999px;
+  padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--divider);
   background: var(--bg-card);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
   transition: transform 0.18s ease, opacity 0.18s ease;
 }
 
@@ -21,15 +21,35 @@
   display: flex;
 }
 
+/* Single pill that slides between the active items. It is positioned in CSS
+   pixels from app.js so labels of any width stay put. */
+.bottom-bar-indicator {
+  position: absolute;
+  top: 5px;
+  bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  width: 0;
+  border-radius: var(--radius-md);
+  background: var(--btn-bg-hover);
+  pointer-events: none;
+}
+
+.bottom-bar.is-ready .bottom-bar-indicator {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .bottom-bar-item {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
+  flex: 1 1 0;
   align-items: center;
   justify-content: center;
-  min-width: 92px;
+  min-width: 0;
   min-height: 44px;
-  padding: 0 18px;
+  padding: 0 8px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   font-family: inherit;
@@ -38,15 +58,23 @@
   text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease;
 }
 
 .bottom-bar-item.is-active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 body.keyboard-open .bottom-bar {
-  transform: translate(-50%, 140%);
+  transform: translateY(140%);
   opacity: 0;
   pointer-events: none;
+}
+
+/* The pill's slide communicates the active view; keep it even when the OS asks
+   for reduced motion. The rest of the UI still switches instantly. */
+@media (prefers-reduced-motion: reduce) {
+  .bottom-bar.is-ready .bottom-bar-indicator {
+    transition-duration: 0.28s !important;
+  }
 }

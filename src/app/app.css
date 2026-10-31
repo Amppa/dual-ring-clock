@@ -8,10 +8,17 @@ body {
   height: 100%;
 }
 
+/* Reserve the scrollbar gutter so switching views never shifts the centred
+   bottom bar horizontally when one view overflows and the other does not. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   width: auto;
   min-height: 100dvh;
   margin: 0;
+  background: var(--bg-primary);
   padding:
     calc(env(safe-area-inset-top, 0px) + 6px)
     calc(env(safe-area-inset-right, 0px) + 8px)

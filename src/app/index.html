@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../shared/tokens.css">
   <link rel="stylesheet" href="../shared/map-tokens.css">
   <link rel="stylesheet" href="../shared/bottom-bar.css">
+  <link rel="stylesheet" href="clock.css">
   <link rel="stylesheet" href="map.css">
   <link rel="stylesheet" href="timeline.css">
   <link rel="stylesheet" href="settings.css">
@@ -17,8 +18,29 @@
 
 <body class="has-bottom-bar">
   <main class="app app-mobile">
-    <!-- View 1: Home (Map & Timeline) -->
-    <div id="homeView" class="view">
+    <!-- View 1: Clock -->
+    <div id="clockView" class="view">
+      <section class="clock-page">
+        <div class="clock-face-wrap">
+          <svg id="clockDial" class="clock-dial" viewBox="0 0 200 200" role="img" aria-label="">
+            <circle class="clock-bezel" cx="100" cy="100" r="96"></circle>
+            <g id="clockTicks" aria-hidden="true"></g>
+            <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
+            <line id="clockHourHand" class="clock-hand clock-hand--hour" x1="100" y1="100" x2="100" y2="52"></line>
+            <line id="clockMinuteHand" class="clock-hand clock-hand--minute" x1="100" y1="100" x2="100" y2="30"></line>
+            <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
+          </svg>
+          <p class="clock-local-label" data-i18n="clockLocalTime">本地時間</p>
+        </div>
+        <section class="clock-cities" aria-labelledby="clockCitiesTitle">
+          <h2 id="clockCitiesTitle" class="clock-section-title" data-i18n="clockSelectedCities">已選取的城市</h2>
+          <ul id="clockCityList" class="clock-city-list"></ul>
+        </section>
+      </section>
+    </div>
+
+    <!-- View 2: Timeline (Map & Timeline) -->
+    <div id="timelineView" class="view" hidden>
       <section class="map-panel">
         <div class="map-content">
           <div class="map-shell">
@@ -47,7 +69,7 @@
       </section>
     </div>
 
-    <!-- View 2: Settings & Cities (Native Single Page View) -->
+    <!-- View 3: Settings & Cities (Native Single Page View) -->
     <div id="settingsView" class="settings-view" hidden>
       <div class="container">
         <div class="settings-column">
@@ -296,10 +318,12 @@
       </div>
     </div>
 
-    <!-- Floating Bottom Navigation -->
+    <!-- Bottom Navigation -->
     <nav class="bottom-bar" aria-label="Primary">
-      <button class="bottom-bar-item is-active" type="button" data-view="home" aria-current="page" data-i18n="navHome">首頁</button>
-      <button class="bottom-bar-item" type="button" data-view="settings" data-i18n="mapSettings">設定</button>
+      <span class="bottom-bar-indicator" aria-hidden="true"></span>
+      <button class="bottom-bar-item is-active" type="button" data-view="clock" aria-current="page" data-i18n="navClock">時鐘</button>
+      <button class="bottom-bar-item" type="button" data-view="timeline" data-i18n="navTimeline">時間軸</button>
+      <button class="bottom-bar-item" type="button" data-view="settings" data-i18n="navSettings">設定</button>
     </nav>
   </main>
   <script type="module" src="app.js"></script>

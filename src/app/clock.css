@@ -1,0 +1,152 @@
+#clockView[hidden] {
+  display: none;
+}
+
+.clock-page {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.clock-face-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.clock-dial {
+  width: min(72vw, 320px);
+  aspect-ratio: 1;
+  display: block;
+}
+
+.clock-bezel {
+  fill: var(--bg-card);
+  stroke: var(--divider);
+  stroke-width: 1;
+}
+
+.clock-tick {
+  stroke: var(--text-secondary);
+  stroke-width: 1;
+}
+
+.clock-tick--major {
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+.clock-numeral {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-numeral--major {
+  fill: var(--text-primary);
+  font-weight: 600;
+}
+
+.clock-hand {
+  stroke-linecap: round;
+}
+
+.clock-hand--hour {
+  stroke: var(--text-primary);
+  stroke-width: 5;
+}
+
+.clock-hand--minute {
+  stroke: var(--accent-solid);
+  stroke-width: 3;
+}
+
+.clock-pivot {
+  fill: var(--accent-solid);
+}
+
+.clock-local-label {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+}
+
+.clock-cities {
+  display: flex;
+  flex-direction: column;
+}
+
+.clock-section-title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 4px;
+}
+
+.clock-city-list {
+  list-style: none;
+}
+
+.clock-city-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 4px;
+  border-top: 1px solid var(--divider);
+}
+
+.clock-city-row:first-child {
+  border-top: 0;
+}
+
+.clock-city-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.clock-city-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.clock-city-date {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.clock-day-shift {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  background: var(--btn-bg);
+  border-radius: var(--radius-pill);
+  padding: 1px 6px;
+}
+
+.clock-city-time {
+  font-size: clamp(1.9rem, 9vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.clock-empty {
+  padding: 28px 4px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
