@@ -64,6 +64,17 @@ const harness = `<!doctype html>
   }
   button:hover { border-color: #5a5a68; }
   button.active { background: #e6e6e6; color: #15151a; border-color: #e6e6e6; }
+  select {
+    min-height: 30px;
+    padding: 0 8px;
+    border: 1px solid #3a3a44;
+    border-radius: 7px;
+    background: #23232b;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  select:hover { border-color: #5a5a68; }
   main {
     flex: 1;
     display: flex;
@@ -72,9 +83,8 @@ const harness = `<!doctype html>
     padding: 20px;
   }
   iframe {
-    width: 390px;
-    max-width: 100%;
-    height: 844px;
+    width: 412px;
+    height: 915px;
     border: 1px solid #3a3a44;
     border-radius: 10px;
     background: #fff;
@@ -88,11 +98,15 @@ const harness = `<!doctype html>
     <button type="button" data-view="home" class="active">首頁</button>
     <button type="button" data-view="settings">設定</button>
   </div>
-  <div class="group" id="widths">
-    <span>Width</span>
-    <button type="button" data-width="390" class="active">390</button>
-    <button type="button" data-width="760">760</button>
-    <button type="button" data-width="1280">1280</button>
+  <div class="group" id="devices">
+    <span>Device</span>
+    <select id="device" aria-label="Device preset">
+      <option value="pixel-7" selected>Pixel 7 · 412×915 · 420dpi</option>
+      <option value="pixel-5">Pixel 5 · 393×851 · 440dpi</option>
+      <option value="galaxy-s21">Galaxy S21 · 360×800 · 480dpi</option>
+      <option value="galaxy-tab-s8">Galaxy Tab S8 · 800×1280 · 276dpi</option>
+      <option value="desktop-1280">Desktop 1280 · 1280×800 · 160dpi</option>
+    </select>
   </div>
   <div class="group">
     <button type="button" id="reload">Reload</button>
@@ -127,12 +141,26 @@ const harness = `<!doctype html>
     });
   });
 
-  document.querySelectorAll("#widths button").forEach((button) => {
-    button.addEventListener("click", () => {
-      document.querySelectorAll("#widths button").forEach((item) => item.classList.toggle("active", item === button));
-      frame.style.width = button.dataset.width + "px";
-    });
-  });
+  const devicePresets = {
+    "pixel-7": { width: 412, height: 915, dpi: 420 },
+    "pixel-5": { width: 393, height: 851, dpi: 440 },
+    "galaxy-s21": { width: 360, height: 800, dpi: 480 },
+    "galaxy-tab-s8": { width: 800, height: 1280, dpi: 276 },
+    "desktop-1280": { width: 1280, height: 800, dpi: 160 }
+  };
+  // Pixel 7 (420dpi) is the 1:1 baseline; zoom scales the frame by relative density.
+  const baseDpi = 420;
+  const deviceSelect = document.getElementById("device");
+
+  const applyDevice = () => {
+    const preset = devicePresets[deviceSelect.value] || devicePresets["pixel-7"];
+    frame.style.width = preset.width + "px";
+    frame.style.height = preset.height + "px";
+    frame.style.zoom = String(Math.round((preset.dpi / baseDpi) * 1000) / 1000);
+  };
+
+  deviceSelect.addEventListener("change", applyDevice);
+  applyDevice();
 
   document.getElementById("reload").addEventListener("click", () => {
     ready = false;

@@ -32,7 +32,7 @@ npm run preview
 - **即時全螢幕預覽**：`http://127.0.0.1:4173/`
   > 建議在 Chrome / Edge 中按 `F12` 開啟 DevTools，切換為「行動裝置模擬」（如 iPhone 14 或 Pixel 7），即可測試觸控拖曳手感、地圖拖拉與響應式排版。
 - **手機外框模擬器**：`http://127.0.0.1:4173/_dev`
-  > 提供 390px、760px、1280px 等多種寬度切換，方便確認平板與手機雙向適配。
+  > 提供裝置下拉選單（Pixel 7、Pixel 5、Galaxy S21、Galaxy Tab S8、Desktop 1280），可切換長寬與密度，方便確認平板與手機雙向適配。
 
 > [!TIP]
 > 伺服器直接服務專案根目錄的原始檔案，修改 `src/app/` 或 `src/shared/` 的 HTML/CSS/JS 後，**在瀏覽器按 `F5` 重新整理立即生效**，不需等待 APK 編譯。
