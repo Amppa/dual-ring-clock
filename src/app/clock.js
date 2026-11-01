@@ -125,6 +125,8 @@ export const ClockView = {
   _localZone: null,
   _ringSignature: "",
   _current: null,
+  _drag: null,
+  _scrollRaf: null,
 
   init() {
     const dial = document.getElementById("clockDial");
@@ -202,7 +204,7 @@ export const ClockView = {
     this._syncRings(now);
     this._renderCityLabels();
     this._renderHands(now);
-    this._renderCityList(now);
+    if (!this._drag) this._renderCityList(now);
   },
 
   tick() {
@@ -248,7 +250,7 @@ export const ClockView = {
     const locale = I18nUtils.getLocale() || "en-US";
     const localDay = dayOrdinal(now, this._localZone);
 
-    const rows = cities.map((city) => {
+    const rows = cities.map((city, index) => {
       const zone = TimeUtils.resolveZone(city.zone);
       const timeText = TimeUtils.getFormatter(locale, {
         timeZone: zone,
@@ -269,17 +271,191 @@ export const ClockView = {
       const name = I18nUtils.getCityName(city);
       const ariaLabel = [name, dateText, shiftText, timeText].filter(Boolean).join(" ");
 
-      return `<li class="clock-city-row" aria-label="${EscapeUtils.html(ariaLabel)}">
+      return `<li class="clock-city-row${index > 1 ? " is-secondary" : ""}" aria-label="${EscapeUtils.html(ariaLabel)}">
         <div class="clock-city-meta">
+          <span class="clock-city-handle" aria-hidden="true">⋮⋮</span>
           <span class="clock-city-name">${EscapeUtils.html(name)}</span>
+        </div>
+        <div class="clock-city-clock">
           <span class="clock-city-date">${EscapeUtils.html(dateText)}</span>
           ${shiftMarkup}
+          <span class="clock-city-time">${EscapeUtils.html(timeText)}</span>
         </div>
-        <span class="clock-city-time">${EscapeUtils.html(timeText)}</span>
       </li>`;
     });
 
     list.innerHTML = rows.join("");
+    this._wireRowDrag();
+  },
+
+  _wireRowDrag() {
+    const rows = this._rowElements();
+    if (rows.length < 2) return;
+    rows.forEach((row, index) => {
+      row.querySelector(".clock-city-handle")?.addEventListener("pointerdown", (e) => {
+        this._beginRowDrag(e, row, index);
+      });
+    });
+  },
+
+  _rowElements() {
+    return Array.from(this._refs.cityList.children).filter((el) => el.classList.contains("clock-city-row"));
+  },
+
+  _beginRowDrag(e, row, index) {
+    if (this._drag || !e.isPrimary) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    const rows = this._rowElements();
+    if (rows.length < 2) return;
+
+    const handle = row.querySelector(".clock-city-handle");
+    if (!handle) return;
+
+    e.preventDefault();
+    handle.setPointerCapture?.(e.pointerId);
+
+    const slotHeight = rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top;
+    this._drag = {
+      pointerId: e.pointerId,
+      row,
+      rows,
+      handle,
+      index,
+      targetIndex: index,
+      startY: e.clientY,
+      lastY: e.clientY,
+      slotHeight,
+      move: (event) => this._onRowDragMove(event),
+      end: (event) => this._finishRowDrag(event.type === "pointercancel")
+    };
+
+    row.classList.add("is-dragging");
+    this._refs.cityList.classList.add("is-dragging-active");
+    document.addEventListener("pointermove", this._drag.move);
+    document.addEventListener("pointerup", this._drag.end);
+    document.addEventListener("pointercancel", this._drag.end);
+    this._startDragAutoScroll();
+  },
+
+  _onRowDragMove(e) {
+    const drag = this._drag;
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    if (e.cancelable) e.preventDefault();
+
+    drag.lastY = e.clientY;
+    this._applyRowDragOffset(drag);
+  },
+
+  _applyRowDragOffset(drag) {
+    const deltaY = drag.lastY - drag.startY;
+    drag.row.style.transform = `translateY(${deltaY}px)`;
+
+    const offsetSlots = Math.round(deltaY / drag.slotHeight);
+    const targetIndex = Math.max(0, Math.min(drag.rows.length - 1, drag.index + offsetSlots));
+    if (targetIndex !== drag.targetIndex) {
+      drag.targetIndex = targetIndex;
+      this._shiftRowSiblings(drag);
+    }
+  },
+
+  _shiftRowSiblings(drag) {
+    const { rows, index, targetIndex, slotHeight } = drag;
+    rows.forEach((row, i) => {
+      if (i === index) return;
+
+      let shift = 0;
+      if (index < targetIndex && i > index && i <= targetIndex) shift = -slotHeight;
+      else if (index > targetIndex && i >= targetIndex && i < index) shift = slotHeight;
+      row.style.transform = shift ? `translateY(${shift}px)` : "";
+    });
+  },
+
+  _startDragAutoScroll() {
+    if (this._scrollRaf !== null) return;
+
+    const EDGE = 72;
+    const MAX_STEP = 16;
+    const tick = () => {
+      const drag = this._drag;
+      if (!drag) {
+        this._scrollRaf = null;
+        return;
+      }
+
+      const y = drag.lastY;
+      let delta = 0;
+      if (y < EDGE) delta = -Math.ceil(((EDGE - y) / EDGE) * MAX_STEP);
+      else if (y > window.innerHeight - EDGE) delta = Math.ceil(((y - (window.innerHeight - EDGE)) / EDGE) * MAX_STEP);
+
+      if (delta !== 0) {
+        const before = window.scrollY;
+        window.scrollBy(0, delta);
+        const scrolled = window.scrollY - before;
+        if (scrolled !== 0) {
+          drag.startY -= scrolled;
+          this._applyRowDragOffset(drag);
+        }
+      }
+
+      this._scrollRaf = requestAnimationFrame(tick);
+    };
+
+    this._scrollRaf = requestAnimationFrame(tick);
+  },
+
+  _stopDragAutoScroll() {
+    if (this._scrollRaf !== null) {
+      cancelAnimationFrame(this._scrollRaf);
+      this._scrollRaf = null;
+    }
+  },
+
+  _finishRowDrag(cancelled) {
+    const drag = this._drag;
+    if (!drag) return;
+
+    document.removeEventListener("pointermove", drag.move);
+    document.removeEventListener("pointerup", drag.end);
+    document.removeEventListener("pointercancel", drag.end);
+    this._stopDragAutoScroll();
+    if (drag.handle?.hasPointerCapture?.(drag.pointerId)) {
+      try {
+        drag.handle.releasePointerCapture(drag.pointerId);
+      } catch { }
+    }
+    this._drag = null;
+
+    if (cancelled || drag.targetIndex === drag.index) {
+      drag.row.style.transition = "transform 0.15s ease-out";
+      drag.row.style.transform = "";
+      setTimeout(() => this._clearRowDragState(drag), 150);
+      return;
+    }
+
+    const finalShift = (drag.targetIndex - drag.index) * drag.slotHeight;
+    drag.row.style.transition = "transform 0.15s cubic-bezier(0.2, 0, 0, 1)";
+    drag.row.style.transform = `translateY(${finalShift}px)`;
+
+    setTimeout(() => {
+      this._clearRowDragState(drag);
+
+      const next = [...State.selectedIds];
+      const [removed] = next.splice(drag.index, 1);
+      next.splice(drag.targetIndex, 0, removed);
+      State.selectedIds = next;
+      State.saveSelection();
+      this.render();
+    }, 150);
+  },
+
+  _clearRowDragState(drag) {
+    drag.rows.forEach((row) => {
+      row.classList.remove("is-dragging");
+      row.style.transform = "";
+      row.style.transition = "";
+    });
+    this._refs.cityList?.classList.remove("is-dragging-active");
   }
 };
 

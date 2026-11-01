@@ -97,46 +97,93 @@
 
 .clock-city-list {
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .clock-city-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 4px;
-  border-top: 1px solid var(--divider);
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
 }
 
-.clock-city-row:first-child {
-  border-top: 0;
+/* Cities 3+ drive no ring, so they read as alternates at half strength. */
+.clock-city-row.is-secondary {
+  color: color-mix(in srgb, var(--text-primary) 50%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 55%, transparent);
+}
+
+.clock-city-row.is-dragging {
+  transition: none;
+  position: relative;
+  z-index: 2;
+  background: var(--bg-card);
 }
 
 .clock-city-meta {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  gap: 14px;
   min-width: 0;
 }
 
+.clock-city-handle {
+  flex: 0 0 auto;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.15em;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.clock-city-row.is-dragging .clock-city-handle {
+  cursor: grabbing;
+}
+
 .clock-city-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: clamp(1.9rem, 9vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: inherit;
+}
+
+.clock-city-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .clock-city-date {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
+  font-size: clamp(1.9rem, 9vw, 2.75rem);
+  font-weight: 100;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
 }
 
 .clock-day-shift {
   font-size: var(--font-xs);
-  color: var(--text-secondary);
+  color: inherit;
   background: var(--btn-bg);
   border-radius: var(--radius-pill);
   padding: 1px 6px;
+  align-self: center;
 }
 
 .clock-city-time {
@@ -147,7 +194,7 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-  color: var(--text-primary);
+  color: inherit;
 }
 
 .clock-empty {

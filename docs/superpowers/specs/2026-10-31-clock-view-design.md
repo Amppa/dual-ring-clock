@@ -30,11 +30,11 @@
 | 刻度 | 24 個小時刻度，無分鐘刻度 |
 | 指針 | 時針＋分針，無秒針 |
 | 走針 | 時針每分鐘微動 0.25°；分針每秒依秒數連續掃動 |
-| 城市列內容 | 城市名＋日期（跨日標 `+1` / `−1`）＋大字 `HH:MM` |
+| 城市列內容 | `⋮⋮` 把手＋城市名（大字 400）＋日期（大字 100，跨日標 `+1` / `−1`）＋`HH:MM`（大字 600）；每列是独立卡片 |
 | 時間格式 | `hourCycle: "h23"`（`00:00`–`23:59`，避免 `24:00`） |
 | 空清單 | 顯示提示文字 |
-| 錶盤時間來源 | 裝置系統本地時間 |
-| 城市列互動 | 唯讀 |
+| 錶盤時間來源 | 第一個已選城市（沒有已選城市時退回裝置本地時間） |
+| 城市列互動 | 可拖曳 `⋮⋮` 重排 `State.selectedIds`；列本身不可點擊 |
 
 ## 4. 檔案與模組
 
@@ -139,19 +139,24 @@ minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
 - 每筆以 `State.findCity(id)` 取得城市；找不到就跳過該筆。
 - 城市名稱用 `I18nUtils.getCityName(city)`，自動處理 `local` 與 `custom-*`。
 
-單列結構：
+單列結構（名稱、日期與時間同为大字，只靠字重區分）：
 
 ```html
 <li class="clock-city-row" aria-label="東京 10/31 +1 09:41">
   <div class="clock-city-meta">
+    <span class="clock-city-handle" aria-hidden="true">⋮⋮</span>
     <span class="clock-city-name">東京</span>
+  </div>
+  <div class="clock-city-clock">
     <span class="clock-city-date">10/31</span>
     <!-- 僅在跨日時插入 -->
     <span class="clock-day-shift">+1</span>
+    <span class="clock-city-time">09:41</span>
   </div>
-  <span class="clock-city-time">09:41</span>
 </li>
 ```
+
+前兩列（對應內／外圈）保持強對比；第 3 列起加上 `.is-secondary`，文字 50%、卡片 55% 強度，表達「備選」。
 
 時間：
 
@@ -193,6 +198,16 @@ function dayOrdinal(date, zone) {
 
 同一時區的重複城市（例如東京／大阪）各自獨立成列；`State` 的 10 城市上限已由既有邏輯保證。
 
+### 6.1 拖曳重排
+
+- 每列最左側的 `⋮⋮` 是拖曳把手（`pointerdown` 起拖），與設定頁城市清單相同的互動模型：跟手 `translateY`、相鄰列過半時用 `transform` 即時讓位、放手後以 0.15s 動畫到位再提交。
+- 提交時重排 `State.selectedIds`（同樣的 splice 邏輯）並 `State.saveSelection()`；因為時間軸與內／外圈都讀同一份順序，順序變更會同時影響：
+  - 時間軸列順序
+  - 內圈＝新的第一個城市、外圈＝新的第二個城市（`_syncRings()` 的簽章改變就會重建雙環）
+- 拖曳期間 `render()` 跳過 `_renderCityList()`，避免每分鐘 ticker 重建列表把拖曳中的節點抽掉；拖曳結束才整份重繪。
+- 把手設 `touch-action: none`，列表邊緣 72px 內自動捲動（`requestAnimationFrame`），讓第 10 列也能拖到頂部。
+- 只有 1 個城市時不綁手把。
+
 ## 7. 更新時機
 
 | 時機 | 行為 |
@@ -206,6 +221,7 @@ function dayOrdinal(date, zone) {
 | 語言切換 | 發生在設定頁；切回時鐘頁時整份重繪 |
 | 主題切換 | 顏色全走 CSS 變數，不需重繪 |
 | 城市增減 | 發生在設定頁；切回時重繪 |
+| 城市列拖曳 | 拖曳中跳過列表重建；放手提交 `State.selectedIds` 後 `render()`（含雙環簽章比對） |
 
 時鐘頁不可見時 ticker 直接跳過，不做多餘 DOM 更新。
 
@@ -213,7 +229,7 @@ function dayOrdinal(date, zone) {
 
 | key | zh | en | es |
 |---|---|---|---|
-| `clockSelectedCities` | 已選取的城市 | Selected cities | Ciudades seleccionadas |
+| `clockSelectedCities` | 城市清單 | City list | Lista de ciudades |
 | `clockEmptyCities` | 尚未選取城市，請到設定新增 | No cities selected. Add some in Settings. | Sin ciudades seleccionadas. Añádelas en Ajustes. |
 | `clockDialAriaLabel` | {city} {time}，24 小時制 | {city} {time}, 24-hour clock | {city} {time}, formato de 24 horas |
 
@@ -224,10 +240,15 @@ function dayOrdinal(date, zone) {
 - `.clock-page`：`max-width: 560px`、左右自動置中、`display: flex`、`flex-direction: column`、`gap: 20px`。
 - `.clock-face-wrap`：垂直排列、置中、`padding-top: 16px`；錶盤寬度 `min(94vw, 416px)`、`aspect-ratio: 1`、`overflow: visible`。viewBox 保持 260，時鐘本體不因城市名而縮小。
 - `.clock-section-title`：`--font-md`、600、`--text-primary`。
-- `.clock-city-row`：`display: flex`、`align-items: center`、`justify-content: space-between`、`gap: 12px`、`padding: 14px 4px`、`border-top: 1px solid var(--divider)`；第一列無上邊框。
-- `.clock-city-meta`：`display: flex`、`align-items: center`、`flex-wrap: wrap`、`gap: 6px`、`min-width: 0`。
-- `.clock-city-name`：`0.95rem`、600。
-- `.clock-city-date` / `.clock-day-shift`：`--font-xs`、`--text-secondary`；徽章用 `--btn-bg` 底、`--radius-pill`、`padding: 1px 6px`。
+- `.clock-city-list`：`display: flex`、`flex-direction: column`、`gap: 10px`（卡片之間靠 gap，不再用分隔線）。
+- `.clock-city-row`：卡片式 —`background: var(--bg-card)`、`border-radius: var(--radius-lg)`、`padding: 12px 14px`、`color: var(--text-primary)`；`flex-wrap: wrap`、`gap: 4px 12px`。`transition: transform 0.2s`、`will-change: transform` 供拖曳讓位動畫；`.is-dragging` 取消 transition、加 `z-index: 2` 與不透明卡片底。
+- `.clock-city-row.is-secondary`（第 3 列起）：`color: color-mix(in srgb, var(--text-primary) 50%, transparent)`、`background: color-mix(in srgb, var(--bg-card) 55%, transparent)`。列內文字一律 `color: inherit`，跟著層級變淡。
+- `.clock-city-meta`：把手＋城市名，`gap: 14px`、`min-width: 0`。
+- `.clock-city-handle`：`⋮⋮`、`color: inherit`、`opacity: 0.6`、`font-size: 1.5rem`、`letter-spacing: -0.15em`、`touch-action: none`、`cursor: grab`（拖曳中 `grabbing`）。
+- `.clock-city-name`：`clamp(1.9rem, 9vw, 2.75rem)`、**400**。
+- `.clock-city-clock`：`align-items: baseline`、`gap: 14px`、`margin-left: auto`、`white-space: nowrap`。
+- `.clock-city-date`：與時間同字号 `clamp(1.9rem, 9vw, 2.75rem)`、**100**、tabular-nums。
+- `.clock-day-shift`：`--font-xs`、`color: inherit`；徽章用 `--btn-bg` 底、`--radius-pill`、`padding: 1px 6px`、`align-self: center`。
 - `.clock-city-time`：`clamp(1.9rem, 9vw, 2.75rem)`、600、`font-variant-numeric: tabular-nums`、`letter-spacing: -0.02em`、`line-height: 1`、`text-align: right`、`white-space: nowrap`。
 - `.clock-empty`：置中、`--text-secondary`、上下 `28px` 留白。
 - `body` 既有 `padding-bottom: 88px` 足以避開底部導覽；城市過多時整頁滾動。
@@ -248,16 +269,23 @@ function dayOrdinal(date, zone) {
 2. 內圈 24 在上方、外圈數字依第二城市時差旋轉；兩圈各有 24 個數字與刻度。指針顯示第一城市時間；以指針角度讀外圈可得到第二城市當地時間。24 點位置內圈顯示第一城市名，21 點位置外圈顯示第二城市名。
 3. 分針每秒連續掃動、時針每分鐘微動；兩針末端為尖角。
 4. 城市列順序與時間軸一致；時間皆為 `HH:MM` 24 小時制。
-5. 跨日城市顯示 `+1` / `−1`（例：本地台北晚上、紐約同日或前一日）。
-6. DST 城市（紐約、雪梨）時間正確。
-7. 空城市清單顯示提示。
-8. 語言切中／英／西，城市名、標題、提示同步切換。
-9. 深色／淺色主題下錶盤與文字對比正常。
-10. 切到時間軸再切回，時間立即更新；App 從背景回來後時間不殘留舊值。
-11. 10 個城市時列表可滾動且不被底部導覽遮住。
+5. 每列是獨立卡片；城市名、日期、時間字号相同，只靠字重區分（400／100／600）；日期在時間左側，兩側間距 14px。
+6. 拖曳 `⋮⋮` 可重排城市；放手後設定頁、時間軸與內／外圈都照新順序（內圈變成新的第一個城市）。
+7. 拖到列表上下緣 72px 內會自動捲動；只有 1 個城市時無法拖曳。
+8. 第 3 列起為備選層級：文字 50%、卡片 55% 強度，可一眼分辨前兩列對應錶盤。
+8. 跨日城市顯示 `+1` / `−1`（例：本地台北晚上、紐約同日或前一日）。
+9. DST 城市（紐約、雪梨）時間正確。
+10. 空城市清單顯示提示。
+11. 語言切中／英／西，城市名、標題（城市清單）、提示同步切換。
+12. 深色／淺色主題下錶盤與文字對比正常。
+13. 切到時間軸再切回，時間立即更新；App 從背景回來後時間不殘留舊值。
+14. 10 個城市時列表可滾動且不被底部導覽遮住；很長的城市名讓列換行而不縮小字級。
 
 ## 12. 風險
 
 - 不同語系的日期格式：只取 numeric 月／日，已避免長格式撐破版面。
-- SVG 文字垂直置中在舊 WebView 可能有偏差；目標為 Android WebView（Chromium），必要時改用 `dy` 微調。
+- SVG 文字垂直置中在舊 WebView 可能有偏差；目標為 Android WebView（Chromium），已用 `dy=0.35em` 校正。
 - 城市列時間依賴 `Intl` 時區資料；既有 App 已全面依賴，無新增風險。
+- `font-weight: 100` 需要 Thin face；Roboto／Inter 有，缺少 Thin 的字型會被合成或回退，日期與城市名的對比會不如預期。
+- 大字級城市名列較易換行（`flex-wrap: wrap`）；選擇不縮小、不壓縮文字，改為讓時間群組落到第二列。
+- 時鐘頁拖曳是 `clock.js` 內自行實作的互動，與 `city-preview.js` 的設定頁版本結構相同但程式碼重複；若第三處需要同樣行為，再抽共用模組。
