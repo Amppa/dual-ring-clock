@@ -71,18 +71,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-.clock-hand {
-  stroke-linecap: round;
-}
-
 .clock-hand--hour {
-  stroke: var(--text-primary);
-  stroke-width: 5;
+  fill: var(--text-primary);
 }
 
 .clock-hand--minute {
-  stroke: var(--accent-solid);
-  stroke-width: 3;
+  fill: var(--accent-solid);
 }
 
 .clock-pivot {

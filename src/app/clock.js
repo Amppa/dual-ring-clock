@@ -7,9 +7,9 @@ import { TimeUtils, I18nUtils, EscapeUtils } from "../shared/utils.js";
 
 const DIAL_CENTER = 100;
 const HOUR_STEP_DEG = 15;
-const INNER_RADIUS = 80;
+const INNER_RADIUS = 88;
 const INNER_WIDTH = 20;
-const OUTER_RADIUS = 104;
+const OUTER_RADIUS = 112;
 const OUTER_WIDTH = 20;
 const RING_GRADIENT_STEPS = 16;
 const RING_SOLIDS = [
