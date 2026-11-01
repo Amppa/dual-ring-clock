@@ -101,10 +101,6 @@ body {
   left: 0;
 }
 
-.app-mobile .hour-cell:nth-child(even) .hour-label {
-  visibility: hidden;
-}
-
 .app-mobile .date-badge {
   top: 2px;
   font-size: 8px;
