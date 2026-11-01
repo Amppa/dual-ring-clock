@@ -18,7 +18,7 @@
 - 不顯示秒針、不畫分鐘小刻度。
 - 城市列不可點擊，也不提供「點城市把錶盤切到該時區」。
 - 不顯示 GMT 偏移或 DST 徽章（時間軸頁已有）。
-- 不新增設定項，不改 `State` / `Storage` schema，不改 `utils.js`。
+- 除盤面主題（§13）外不新增設定項，不改 `utils.js`。
 - 不引入建置工具或自動化測試框架。
 
 ## 3. 決策摘要
@@ -35,18 +35,23 @@
 | 空清單 | 顯示提示文字 |
 | 錶盤時間來源 | 第一個已選城市（沒有已選城市時退回裝置本地時間） |
 | 城市列互動 | 可拖曳 `⋮⋮` 重排 `State.selectedIds`；列本身不可點擊 |
+| 盤面主題 | 三档（§13）：`twoTone` 6–18／18–6 硬邊、`gradient` 半點邊界＋16 段漸層（現況、預設）、`timeline` 8／18／0 三色，分界點與時間軸相同；由設定頁「時鐘」卡選擇，存 `State.clockDialTheme` |
 
 ## 4. 檔案與模組
 
 | 檔案 | 變動 |
 |---|---|
-| `src/app/clock.js` | 新增 `ClockView` |
-| `src/app/clock.css` | 新增時鐘頁樣式 |
-| `src/app/index.html` | 填入 `#clockView` 骨架、引入 `clock.css` |
+| `src/app/clock.js` | 新增 `ClockView`；色環分段依 `RING_LAYOUTS[State.clockDialTheme]` 產生（§13） |
+| `src/app/clock.css` | 新增時鐘頁樣式；`.clock-ring--day/mid/evening` 只指到 token |
+| `src/app/index.html` | 填入 `#clockView` 骨架、引入 `clock.css`；新增設定頁 `#cardClock`（§13） |
 | `src/app/app.js` | import、初始化、切頁渲染、每分鐘 tick、`pageshow` 補渲染 |
-| `src/shared/i18n.js` | 新增 4 個 key × 3 語言 |
+| `src/shared/i18n.js` | 新增時鐘頁與設定卡字串 × 3 語言 |
+| `src/shared/config.js` | `clockDialThemeKey`、`clockDialThemes`、`defaultClockDialTheme`（§13） |
+| `src/shared/state.js` | `clockDialTheme` 欄位、`resolveClockDialTheme()`、`saveClockDialTheme()`（§13） |
+| `src/shared/tokens.css` | `--clock-ring-day` / `--clock-ring-mid` / `--clock-ring-evening`、徽章與刻度色 token（§13） |
+| `src/app/settings-controller.js` | `renderClock()` / `wireClock()` 接線盤面主題下拉（§13） |
 
-不動 `src/shared/state.js`、`src/shared/utils.js`、`src/shared/config.js`。
+`src/shared/utils.js` 不動。
 
 ### 模組介面
 
@@ -91,7 +96,7 @@ export const ClockView = {
 | 元素 | 參數 |
 |---|---|
 | 錶圈 | `r=96`，填 `--bg-card`，描邊 `--divider` 1px |
-| 內圈時段環 | 圓環 `r=88`、寬 20（涵蓋 78–98），代表 `State.selectedIds[0]`，固定不旋轉：6.5–17.5 白天色、18.5–5.5 傍晚色（跨午夜）；17.5–18.5 與 5.5–6.5 各以 16 段 `color-mix()` 做白天↔傍晚漸層。色盤沿用時間軸：淺色 `#FFE7A3` / `#856C60`，深色 `#EEB422` / `#38302E` |
+| 內圈時段環 | 圓環 `r=88`、寬 20（涵蓋 78–98），代表 `State.selectedIds[0]`，固定不旋轉；時段分段依盤面主題（§13），預設 `gradient`：6.5–17.5 白天色、18.5–5.5 傍晚色（跨午夜），17.5–18.5 與 5.5–6.5 各以 16 段 `color-mix()` 做白天↔傍晚漸層。色盤沿用時間軸：淺色 `#FFE7A3` / `#856C60`，深色 `#EEB422` / `#38302E` |
 | 外圈時段環 | 圓環 `r=112`、寬 20（涵蓋 102–122，與內圈等寬），代表 `State.selectedIds[1]`；整圈（色段、刻度、底盤、數字）依 `-(offset2 − offset1)/60` 小時旋轉，讓同一指針角度可讀第二城市時間。少於兩個城市時不畫 |
 | 小時刻度 | 每圈 24 個，各自從 `半徑 ± 寬/2` 貫穿色環；一律線寬 1；顏色 `--clock-tick`（淺色白、深色黑）。刻度先畫，數字圓盤再蓋住中段，形成被白／黑線切開的環 |
 | 數字底盤 | 每圈 24 個，`r=6.5`，圓心落在各圈半徑上，填 `--clock-badge-bg`（淺色白、深色黑），不超出該圈內緣 |
@@ -280,6 +285,8 @@ function dayOrdinal(date, zone) {
 12. 深色／淺色主題下錶盤與文字對比正常。
 13. 切到時間軸再切回，時間立即更新；App 從背景回來後時間不殘留舊值。
 14. 10 個城市時列表可滾動且不被底部導覽遮住；很長的城市名讓列換行而不縮小字級。
+15. 設定「時鐘」卡切三档後切回時鐘頁，內／外圈分段對應（§13）：雙色硬邊在 6／18（6、18 的數字徽章跨在色界上）；雙色微漸層維持現況；三色硬邊在 8／18／24，與時間軸的分界線同一位置、中段是時間軸的 period2 色。
+16. 重新開啟 App 後盤面主題維持上次選擇；切深／淺色時三档的顏色都跟著 token 換。
 
 ## 12. 風險
 
@@ -289,3 +296,23 @@ function dayOrdinal(date, zone) {
 - `font-weight: 100` 需要 Thin face；Roboto／Inter 有，缺少 Thin 的字型會被合成或回退，日期與城市名的對比會不如預期。
 - 大字級城市名列較易換行（`flex-wrap: wrap`）；選擇不縮小、不壓縮文字，改為讓時間群組落到第二列。
 - 時鐘頁拖曳是 `clock.js` 內自行實作的互動，與 `city-preview.js` 的設定頁版本結構相同但程式碼重複；若第三處需要同樣行為，再抽共用模組。
+
+## 13. 盤面主題（設定頁「時鐘」卡）
+
+**入口**：`index.html` 的 `#cardClock`（在外觀卡之後），一個 `control-group`：標籤 `盤面主題`＋ `select.styled-select#mobileClockDialThemeSelect`，三個 option 帶 `data-i18n`，與語言／佈景主題下拉同一写法。
+
+**持久化**：`CONFIG.clockDialThemeKey = "worldTimeAlignerClockDialTheme"`、`clockDialThemes = ["twoTone", "gradient", "timeline"]`、`defaultClockDialTheme = "gradient"`。`State.init()` 用 `resolveClockDialTheme()` 讀（不在清單內的值退回預設），`saveClockDialTheme()` 走同一校驗再寫 `Storage`。下拉 `change` 只存值，不呼叫 `Renderer.render()`：改設定時時鐘頁是隱藏的，切回時 `ClockView.render()` 自會重建。
+
+**分段表**（`clock.js` 的 `RING_LAYOUTS`；`buildRingPaths(radius, width, offsetHours, theme)` 照它產 `<path>`，每档各段加總 24 小時）：
+
+| theme | 白天段 | 中段 | 傍晚段 | 邊界處理 |
+|---|---|---|---|---|
+| `twoTone` 雙色 | 6 → 18 | — | 18 → 6 | 整點硬邊；6／18 的數字徽章正好跨在色界上 |
+| `gradient` 雙色微漸層（預設） | 6.5 → 17.5 | — | 18.5 → 5.5 | 另在 17.5–18.5、5.5–6.5 各畫 16 段 `color-mix(in srgb, ...)`；色界落在半點，不切到徽章 |
+| `timeline` 三色 | 8 → 18 | 18 → 0 | 0 → 8 | 整點硬邊，分界點與時間軸的 period 分界線同一位置（8–17／18–23／0–7 那些小時格的邊）；8、18、24 三個徽章會被色界切過 |
+
+**顏色 token**：`--clock-ring-day` / `--clock-ring-mid` / `--clock-ring-evening` 在 `tokens.css` 三個 block（`:root` 為暗色預設、`[data-theme="dark"]`、`[data-theme="light"]`）各自定義。`--clock-ring-mid` 深 `#B8860B`／淺 `#F9BE6C`，取 `CONFIG.periodColorsByCount[3]` 的中間色；day／evening 兩個 token 本來就等於同表的第一、第三色，所以三色档不重複定義色盤。三档共用同一組 token，只差分段與有無漸層，換深淺色由 CSS 變數自動生效、不需要重新取色。
+
+**重建時機**：`_syncRings()` 的 signature 是 `zone1|offset1|zone2|offset2|clockDialTheme`；主題改變使 signature 不同，下一次 `render()` 重建兩圈色環。刻度、徽章、數字走同一份 `buildRingScale()`，不受主題影響；指針、城市名標籤也不變。
+
+**多圈**：內圈與外圈共用同一主題，只差 `offsetHours`，之後新增第三圈沿用。

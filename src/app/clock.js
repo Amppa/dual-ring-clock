@@ -12,14 +12,35 @@ const INNER_WIDTH = 20;
 const OUTER_RADIUS = 112;
 const OUTER_WIDTH = 20;
 const RING_GRADIENT_STEPS = 16;
-const RING_SOLIDS = [
-  { start: 6.5, end: 17.5, className: "clock-ring--day" },
-  { start: 18.5, end: 5.5, className: "clock-ring--evening" }
-];
-const RING_TRANSITIONS = [
-  { start: 17.5, end: 18.5, from: "day", to: "evening" },
-  { start: 5.5, end: 6.5, from: "evening", to: "day" }
-];
+
+/** Segments walk clockwise; half-hour seams land between numeral badges, whole-hour seams cut through them. */
+const RING_LAYOUTS = {
+  twoTone: {
+    solids: [
+      { start: 6, end: 18, tone: "day" },
+      { start: 18, end: 6, tone: "evening" }
+    ],
+    transitions: []
+  },
+  gradient: {
+    solids: [
+      { start: 6.5, end: 17.5, tone: "day" },
+      { start: 18.5, end: 5.5, tone: "evening" }
+    ],
+    transitions: [
+      { start: 17.5, end: 18.5, from: "day", to: "evening" },
+      { start: 5.5, end: 6.5, from: "evening", to: "day" }
+    ]
+  },
+  timeline: {
+    solids: [
+      { start: 8, end: 18, tone: "day" },
+      { start: 18, end: 0, tone: "mid" },
+      { start: 0, end: 8, tone: "evening" }
+    ],
+    transitions: []
+  }
+};
 
 const zoneFormatters = new Map();
 
@@ -72,13 +93,14 @@ function dayOrdinal(date, zone) {
   return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
 }
 
-function buildRingPaths(radius, width, offsetHours) {
-  const paths = RING_SOLIDS.map(
-    ({ start, end, className }) =>
-      `<path class="${className}" d="${ringArc(start, end, radius, offsetHours)}" style="stroke-width: ${width}"></path>`
+function buildRingPaths(radius, width, offsetHours, theme) {
+  const { solids, transitions } = RING_LAYOUTS[theme];
+  const paths = solids.map(
+    ({ start, end, tone }) =>
+      `<path class="clock-ring--${tone}" d="${ringArc(start, end, radius, offsetHours)}" style="stroke-width: ${width}"></path>`
   );
 
-  RING_TRANSITIONS.forEach(({ start, end, from, to }) => {
+  transitions.forEach(({ start, end, from, to }) => {
     const step = (end - start) / RING_GRADIENT_STEPS;
     for (let i = 0; i < RING_GRADIENT_STEPS; i += 1) {
       const mix = Math.round(((i + 0.5) / RING_GRADIENT_STEPS) * 100);
@@ -175,7 +197,7 @@ export const ClockView = {
     const { city1, city2, zone1, zone2, offset1, offset2, configs } = this._ringConfigs(now);
     this._current = { city1, city2 };
 
-    const signature = `${zone1}|${offset1}|${zone2}|${offset2}`;
+    const signature = `${zone1}|${offset1}|${zone2}|${offset2}|${State.clockDialTheme}`;
     if (signature === this._ringSignature) return;
     this._ringSignature = signature;
 
@@ -185,7 +207,7 @@ export const ClockView = {
     const numeralParts = [];
 
     configs.forEach(({ radius, width, offset }) => {
-      ringParts.push(...buildRingPaths(radius, width, offset));
+      ringParts.push(...buildRingPaths(radius, width, offset, State.clockDialTheme));
       const scale = buildRingScale(radius, width, offset);
       tickParts.push(...scale.ticks);
       badgeParts.push(...scale.badges);

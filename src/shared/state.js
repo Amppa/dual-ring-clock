@@ -55,6 +55,7 @@ export const State = {
   },
   baseHours: [],
   nowLineMode: "local",   // 'local' | 'firstCity'
+  clockDialTheme: "gradient", // CONFIG.clockDialThemes
   scrubs: [],             // array of { id, fraction } objects
   activeScrubId: null,    // id of the active scrub line
   draggingId: null,
@@ -88,6 +89,7 @@ export const State = {
     this.cityLimit = CONFIG.maxCities;
     this.selectedIds = this.resolveSelection(Storage.get(CONFIG.storageKey));
     this.nowLineMode = this.resolveNowLineMode(Storage.get(CONFIG.nowLineModeKey));
+    this.clockDialTheme = this.resolveClockDialTheme(Storage.get(CONFIG.clockDialThemeKey));
     this.scrubs = [];
     this.activeScrubId = null;
     this.draggingId = null;
@@ -245,6 +247,16 @@ export const State = {
   saveNowLineMode(mode) {
     this.nowLineMode = mode;
     Storage.set(CONFIG.nowLineModeKey, mode);
+  },
+
+  resolveClockDialTheme(saved) {
+    if (CONFIG.clockDialThemes.includes(saved)) return saved;
+    return CONFIG.defaultClockDialTheme;
+  },
+
+  saveClockDialTheme(theme) {
+    this.clockDialTheme = this.resolveClockDialTheme(theme);
+    Storage.set(CONFIG.clockDialThemeKey, this.clockDialTheme);
   },
 
   makeBaseHours() {

@@ -25,6 +25,7 @@ export const CONFIG = {
   timePeriodsKey: "worldTimeAlignerTimePeriods",
   languageKey: "worldTimeAlignerLanguage",
   nowLineModeKey: "worldTimeAlignerNowLineMode",
+  clockDialThemeKey: "worldTimeAlignerClockDialTheme",
   themeKey: "theme",
   languagePreferenceKey: "worldTimeAlignerLanguagePref",
   /** Internal UI language codes offered in the settings. */
@@ -32,6 +33,9 @@ export const CONFIG = {
   /** Maps an internal UI language code to the BCP-47 locale used for date/time formatting. */
   localeMap: { zh: "zh-TW", en: "en-US", es: "es-ES" },
   languagePreferenceValues: ["auto", "zh", "en", "es"],
+  /** 24-hour dial ring palettes: solid two-tone, two-tone with soft boundary blends, timeline three-tone. */
+  clockDialThemes: ["twoTone", "gradient", "timeline"],
+  defaultClockDialTheme: "gradient",
   defaultMapSettings: {
     lngOffset: 1.0,
     latOffset: 20.7,

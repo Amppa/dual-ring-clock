@@ -50,6 +50,7 @@
   --accent-gradient: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
   --accent-solid: #0ea5e9;
   --clock-ring-day: #EEB422;
+  --clock-ring-mid: #B8860B;
   --clock-ring-evening: #38302E;
   --clock-badge-bg: #000000;
   --clock-badge-ink: #ffffff;
@@ -100,6 +101,7 @@
 
   --timezone-hover-bg: rgba(56, 189, 248, 0.18);
   --clock-ring-day: #EEB422;
+  --clock-ring-mid: #B8860B;
   --clock-ring-evening: #38302E;
   --clock-badge-bg: #000000;
   --clock-badge-ink: #ffffff;
@@ -130,6 +132,7 @@
 
   --timezone-hover-bg: rgba(245, 158, 11, 0.18);
   --clock-ring-day: #FFE7A3;
+  --clock-ring-mid: #F9BE6C;
   --clock-ring-evening: #856C60;
   --clock-badge-bg: #ffffff;
   --clock-badge-ink: #1a1a1e;

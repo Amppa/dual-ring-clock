@@ -46,6 +46,7 @@ export const SettingsController = {
     this.initMobileAddCity();
     this.wireCities();
     this.wireAppearance();
+    this.wireClock();
     this.wireMapSettings();
     this.wirePeriods();
     this.refresh();
@@ -54,6 +55,7 @@ export const SettingsController = {
   refresh() {
     this.renderCities();
     this.renderAppearance();
+    this.renderClock();
     this.renderMapControls();
     this.renderPeriodControls();
   },
@@ -200,6 +202,22 @@ export const SettingsController = {
         if (globalThis.TimeMapperTheme) {
           globalThis.TimeMapperTheme.apply(themeSelect.value);
         }
+      });
+    }
+  },
+
+  renderClock() {
+    const dialThemeSelect = document.getElementById("mobileClockDialThemeSelect");
+    if (dialThemeSelect) {
+      dialThemeSelect.value = State.clockDialTheme;
+    }
+  },
+
+  wireClock() {
+    const dialThemeSelect = document.getElementById("mobileClockDialThemeSelect");
+    if (dialThemeSelect) {
+      dialThemeSelect.addEventListener("change", () => {
+        State.saveClockDialTheme(dialThemeSelect.value);
       });
     }
   },

@@ -40,6 +40,10 @@
   stroke: var(--clock-ring-day);
 }
 
+.clock-ring--mid {
+  stroke: var(--clock-ring-mid);
+}
+
 .clock-ring--evening {
   stroke: var(--clock-ring-evening);
 }
