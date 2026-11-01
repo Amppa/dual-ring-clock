@@ -12,6 +12,10 @@ const INNER_WIDTH = 20;
 const OUTER_RADIUS = 112;
 const OUTER_WIDTH = 20;
 const RING_GRADIENT_STEPS = 16;
+const MINUTE_TICK_OUTER_RADIUS = 74;
+const MINUTE_TICK_INNER_RADIUS = 71;
+const MINUTE_NUMERAL_RADIUS = 67;
+const MINUTE_STEP_DEG = 6;
 
 /** Segments walk clockwise; half-hour seams land between numeral badges, whole-hour seams cut through them. */
 const RING_LAYOUTS = {
@@ -142,6 +146,29 @@ function buildRingScale(radius, width, offsetHours) {
   return { ticks, badges, numerals };
 }
 
+/** Inner-ring minute scale: fixed geometry, so it is painted once instead of per rebuild. */
+function buildMinuteTrack() {
+  const ticks = [];
+  const numerals = [];
+
+  for (let minute = 0; minute < 60; minute += 5) {
+    const angle = minute * MINUTE_STEP_DEG;
+    const tickOuter = polarPoint(MINUTE_TICK_OUTER_RADIUS, angle);
+    const tickInner = polarPoint(MINUTE_TICK_INNER_RADIUS, angle);
+    ticks.push(
+      `<line class="clock-minute-tick" x1="${tickOuter.x}" y1="${tickOuter.y}" x2="${tickInner.x}" y2="${tickInner.y}"></line>`
+    );
+
+    const label = polarPoint(MINUTE_NUMERAL_RADIUS, angle);
+    const labelText = String(minute === 0 ? 60 : minute).padStart(2, "0");
+    numerals.push(
+      `<text class="clock-minute-numeral" x="${label.x}" y="${label.y}" dy="0.35em" text-anchor="middle">${labelText}</text>`
+    );
+  }
+
+  return { ticks, numerals };
+}
+
 export const ClockView = {
   _refs: null,
   _localZone: null,
@@ -159,6 +186,8 @@ export const ClockView = {
       badges: document.getElementById("clockBadges"),
       ticks: document.getElementById("clockTicks"),
       numerals: document.getElementById("clockNumerals"),
+      minuteTrack: document.getElementById("clockMinuteTrack"),
+      minuteTrackNumerals: document.getElementById("clockMinuteTrackNumerals"),
       hourHand: document.getElementById("clockHourHand"),
       minuteHand: document.getElementById("clockMinuteHand"),
       innerCityLabel: document.getElementById("clockInnerCityLabel"),
@@ -166,6 +195,9 @@ export const ClockView = {
       cityList: document.getElementById("clockCityList")
     };
     this._localZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    const minuteTrack = buildMinuteTrack();
+    this._refs.minuteTrack.innerHTML = minuteTrack.ticks.join("");
+    this._refs.minuteTrackNumerals.innerHTML = minuteTrack.numerals.join("");
     this.render();
   },
 

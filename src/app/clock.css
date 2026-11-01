@@ -75,16 +75,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.clock-minute-tick {
+  stroke: var(--clock-minute-track);
+  stroke-width: 0.5;
+}
+
+.clock-minute-numeral {
+  fill: var(--clock-minute-track);
+  font-size: 7px;
+  font-weight: 100;
+  font-variant-numeric: tabular-nums;
+}
+
 .clock-hand--hour {
   fill: var(--text-primary);
 }
 
 .clock-hand--minute {
-  fill: var(--accent-solid);
+  fill: var(--clock-minute-track);
 }
 
 .clock-pivot {
-  fill: var(--accent-solid);
+  fill: var(--clock-minute-track);
 }
 
 .clock-cities {
