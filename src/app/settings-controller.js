@@ -7,7 +7,8 @@ import { State } from "../shared/state.js";
 import {
   MathUtils,
   I18nUtils,
-  PeriodUtils
+  PeriodUtils,
+  TimeUtils
 } from "../shared/utils.js";
 import { TimeMapperVersion } from "../shared/version.js";
 import { CityPreview } from "../shared/city-preview.js";
@@ -36,9 +37,7 @@ export const SettingsController = {
 
   init() {
     const versionLabel = document.getElementById("versionLabel");
-    if (globalThis.TimeMapperVersion) {
-      globalThis.TimeMapperVersion.render(versionLabel);
-    }
+    TimeMapperVersion.render(versionLabel);
 
     const citiesMount = document.getElementById("cardCities");
     this.cityRefs = citiesMount ? CityPreview.collectRefs(citiesMount) : null;
