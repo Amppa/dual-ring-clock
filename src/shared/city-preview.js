@@ -5,13 +5,7 @@
 import { State } from "./state.js";
 import { CONFIG } from "./config.js";
 import { MathUtils, MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
-
-/**
- * Transient pointer-drag bookkeeping. These hold DOM nodes, so they stay in
- * module scope instead of the persisted State singleton.
- */
-let activePointerDrag = null;
-let autoScrollRaf = null;
+import { DragReorderController } from "./drag-reorder.js";
 
 /**
  * Return a new order with `id` moved before/after `targetId`.
@@ -47,13 +41,7 @@ export const CityPreview = {
 
   /** Clear drag state on every city card. */
   clearCardDragState(refs) {
-    document.removeEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.removeEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.removeEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    if (autoScrollRaf !== null) {
-      cancelAnimationFrame(autoScrollRaf);
-      autoScrollRaf = null;
-    }
+    DragReorderController.cancel();
     if (refs?.currentCitiesList) {
       refs.currentCitiesList.classList.remove("is-dragging-active");
     }
@@ -62,7 +50,6 @@ export const CityPreview = {
       c.style.transform = "";
       c.style.transition = "";
     });
-    activePointerDrag = null;
     State.draggingId = null;
   },
 
@@ -73,7 +60,7 @@ export const CityPreview = {
    */
   renderCurrentCitiesList(refs, onReorder) {
     if (!refs.currentCitiesList) return;
-    if (activePointerDrag) CityPreview.clearCardDragState(refs);
+    if (DragReorderController.isDragging()) CityPreview.clearCardDragState(refs);
     refs.currentCitiesList.innerHTML = "";
 
     State.selectedIds.forEach((id) => {
@@ -219,184 +206,36 @@ export const CityPreview = {
   },
 
   beginPointerDrag(e, card, id, refs, onReorder) {
-    if (!e.isPrimary) return;
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (activePointerDrag) return;
-
     const cards = Array.from(refs.currentCitiesList?.querySelectorAll(".current-city-card") || []);
     const startIndex = cards.indexOf(card);
     if (startIndex === -1 || cards.length <= 1) return;
 
-    e.preventDefault();
-    const handle = e.currentTarget;
-    handle.setPointerCapture?.(e.pointerId);
-
-    const slotHeight = cards.length > 1
-      ? (cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top)
-      : (card.offsetHeight + 6);
-
-    activePointerDrag = {
-      pointerId: e.pointerId,
-      id,
-      card,
-      handle,
-      refs,
-      onReorder,
-      startY: e.clientY,
-      lastY: e.clientY,
-      cards,
-      startIndex,
-      targetIndex: startIndex,
-      slotHeight,
-    };
-
     State.draggingId = id;
-    card.classList.add("is-dragging");
-    refs.currentCitiesList?.classList.add("is-dragging-active");
+    DragReorderController.begin({
+      event: e,
+      container: refs.currentCitiesList,
+      item: card,
+      items: cards,
+      handle: e.currentTarget,
+      startIndex,
+      onReorder: (fromIndex, toIndex) => {
+        State.draggingId = null;
+        const next = [...State.selectedIds];
+        const [removed] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, removed);
+        State.selectedIds = next;
+        State.saveSelection();
 
-    document.addEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.addEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.addEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    CityPreview._startAutoScroll();
-  },
+        CityPreview.isReordering = true;
+        CityPreview.renderCurrentCitiesList(refs, onReorder);
+        CityPreview.isReordering = false;
 
-  _onPointerDragMove(e) {
-    const drag = activePointerDrag;
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    if (e.cancelable) e.preventDefault();
-
-    drag.lastY = e.clientY;
-    const deltaY = e.clientY - drag.startY;
-    drag.card.style.transform = `translateY(${deltaY}px)`;
-
-    const offsetSlots = Math.round(deltaY / drag.slotHeight);
-    const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
-
-    if (targetIndex !== drag.targetIndex) {
-      drag.targetIndex = targetIndex;
-      CityPreview._updateSiblingDisplacements();
-    }
-  },
-
-  _onPointerDragEnd(e) {
-    const drag = activePointerDrag;
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    CityPreview._finishPointerDrag(e.type === "pointercancel");
-  },
-
-  _updateSiblingDisplacements() {
-    const drag = activePointerDrag;
-    if (!drag) return;
-
-    const { cards, startIndex, targetIndex, slotHeight } = drag;
-    cards.forEach((c, i) => {
-      if (i === startIndex) return;
-
-      let shift = 0;
-      if (startIndex < targetIndex) {
-        if (i > startIndex && i <= targetIndex) {
-          shift = -slotHeight;
-        }
-      } else if (startIndex > targetIndex) {
-        if (i >= targetIndex && i < startIndex) {
-          shift = slotHeight;
-        }
+        if (typeof onReorder === "function") onReorder();
+      },
+      onCancel: () => {
+        State.draggingId = null;
       }
-      c.style.transform = shift ? `translateY(${shift}px)` : "";
     });
-  },
-
-  _startAutoScroll() {
-    if (autoScrollRaf !== null) return;
-
-    const EDGE = 72;
-    const MAX_STEP = 16;
-    const tick = () => {
-      const drag = activePointerDrag;
-      if (!drag) {
-        autoScrollRaf = null;
-        return;
-      }
-
-      const y = drag.lastY;
-      let delta = 0;
-      if (y < EDGE) {
-        delta = -Math.ceil(((EDGE - y) / EDGE) * MAX_STEP);
-      } else if (y > window.innerHeight - EDGE) {
-        delta = Math.ceil(((y - (window.innerHeight - EDGE)) / EDGE) * MAX_STEP);
-      }
-
-      if (delta !== 0) {
-        const before = window.scrollY;
-        window.scrollBy(0, delta);
-        const scrolled = window.scrollY - before;
-        if (scrolled !== 0) {
-          drag.startY -= scrolled;
-          const deltaY = drag.lastY - drag.startY;
-          drag.card.style.transform = `translateY(${deltaY}px)`;
-          const offsetSlots = Math.round(deltaY / drag.slotHeight);
-          const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
-          if (targetIndex !== drag.targetIndex) {
-            drag.targetIndex = targetIndex;
-            CityPreview._updateSiblingDisplacements();
-          }
-        }
-      }
-
-      autoScrollRaf = requestAnimationFrame(tick);
-    };
-
-    autoScrollRaf = requestAnimationFrame(tick);
-  },
-
-  _finishPointerDrag(cancelled) {
-    const drag = activePointerDrag;
-    if (!drag) return;
-
-    document.removeEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.removeEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.removeEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    if (autoScrollRaf !== null) {
-      cancelAnimationFrame(autoScrollRaf);
-      autoScrollRaf = null;
-    }
-    if (drag.handle?.hasPointerCapture?.(drag.pointerId)) {
-      try {
-        drag.handle.releasePointerCapture(drag.pointerId);
-      } catch (_) {}
-    }
-
-    const { refs, onReorder, card, startIndex, targetIndex, slotHeight } = drag;
-
-    if (cancelled || targetIndex === startIndex) {
-      card.style.transition = "transform 0.15s ease-out";
-      card.style.transform = "";
-      setTimeout(() => {
-        CityPreview.clearCardDragState(refs);
-      }, 150);
-      return;
-    }
-
-    const finalShift = (targetIndex - startIndex) * slotHeight;
-    card.style.transition = "transform 0.15s cubic-bezier(0.2, 0, 0, 1)";
-    card.style.transform = `translateY(${finalShift}px)`;
-
-    setTimeout(() => {
-      CityPreview.clearCardDragState(refs);
-
-      const next = [...State.selectedIds];
-      const [removed] = next.splice(startIndex, 1);
-      next.splice(targetIndex, 0, removed);
-
-      State.selectedIds = next;
-      State.saveSelection();
-
-      CityPreview.isReordering = true;
-      CityPreview.renderCurrentCitiesList(refs, onReorder);
-      CityPreview.isReordering = false;
-
-      if (typeof onReorder === "function") onReorder();
-    }, 150);
   },
 
   /**
