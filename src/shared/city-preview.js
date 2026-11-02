@@ -7,26 +7,7 @@ import { CONFIG } from "./config.js";
 import { MathUtils, MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
 import { DragReorderController } from "./drag-reorder.js";
 
-/**
- * Return a new order with `id` moved before/after `targetId`.
- * Returns the original array when the move is a no-op or ids are unknown.
- */
-export function reorderIds(ids, id, targetId, placeAfter) {
-  const from = ids.indexOf(id);
-  const targetIndex = ids.indexOf(targetId);
-  if (from === -1 || targetIndex === -1 || id === targetId) return ids;
-
-  const list = [...ids];
-  list.splice(from, 1);
-  let insertIndex = targetIndex + (placeAfter ? 1 : 0);
-  if (from < insertIndex) insertIndex -= 1;
-  if (insertIndex === from) return ids;
-  list.splice(insertIndex, 0, id);
-  return list;
-}
-
 export const CityPreview = {
-  isReordering: false,
   /**
    * Collect the nodes this module renders into.
    */
@@ -50,7 +31,6 @@ export const CityPreview = {
       c.style.transform = "";
       c.style.transition = "";
     });
-    State.draggingId = null;
   },
 
   /**
@@ -124,7 +104,7 @@ export const CityPreview = {
       zoneSelect.value = currentZone;
 
       dragHandle.addEventListener("pointerdown", (e) => {
-        CityPreview.beginPointerDrag(e, card, id, refs, onReorder);
+        CityPreview.beginPointerDrag(e, card, refs, onReorder);
       });
 
       const handleAutoSave = () => {
@@ -205,12 +185,11 @@ export const CityPreview = {
     });
   },
 
-  beginPointerDrag(e, card, id, refs, onReorder) {
+  beginPointerDrag(e, card, refs, onReorder) {
     const cards = Array.from(refs.currentCitiesList?.querySelectorAll(".current-city-card") || []);
     const startIndex = cards.indexOf(card);
     if (startIndex === -1 || cards.length <= 1) return;
 
-    State.draggingId = id;
     DragReorderController.begin({
       event: e,
       container: refs.currentCitiesList,
@@ -219,21 +198,15 @@ export const CityPreview = {
       handle: e.currentTarget,
       startIndex,
       onReorder: (fromIndex, toIndex) => {
-        State.draggingId = null;
         const next = [...State.selectedIds];
         const [removed] = next.splice(fromIndex, 1);
         next.splice(toIndex, 0, removed);
         State.selectedIds = next;
         State.saveSelection();
 
-        CityPreview.isReordering = true;
         CityPreview.renderCurrentCitiesList(refs, onReorder);
-        CityPreview.isReordering = false;
 
         if (typeof onReorder === "function") onReorder();
-      },
-      onCancel: () => {
-        State.draggingId = null;
       }
     });
   },

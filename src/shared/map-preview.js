@@ -54,15 +54,6 @@ export const MapPreview = {
   },
 
   /**
-   * Full pins mount (sync immediate + schedule deferred pins).
-   * Used by options preview, tests, and full repaints.
-   */
-  renderPins(refs, onCityToggle) {
-    this.renderPinsImmediate(refs, onCityToggle);
-    this.mountDeferredPins(refs);
-  },
-
-  /**
    * Fast-path immediate reconciler: updates transforms, labels, and mounts/patches
    * visible & selected pins without wiping the DOM. Background catalog pins are
    * deferred to mountDeferredPins on idle.
@@ -501,14 +492,6 @@ export const MapPreview = {
     if (refs.mapTimeLabelLayer) {
       refs.mapTimeLabelLayer.style.display = State.mapSettings.showCityTimes ? "" : "none";
     }
-  },
-
-  /** Full repaint: pins + night + timeline + visibility. */
-  renderAll(refs, onCityToggle, offsetHours = 0) {
-    this.renderPins(refs, onCityToggle);
-    this.renderNightArea(refs, offsetHours);
-    this.renderNightDecorations(refs, offsetHours);
-    this.applyVisibility(refs);
   },
 
   /**

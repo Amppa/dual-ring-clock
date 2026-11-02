@@ -27,10 +27,9 @@ export const DragReorderController = {
    * @param {HTMLElement} options.handle - The handle element capturing pointer events.
    * @param {number} options.startIndex - The initial index of item within items.
    * @param {Function} options.onReorder - Called when reordering is committed: (fromIndex, toIndex) => void.
-   * @param {Function} [options.onCancel] - Called when drag is cancelled or targetIndex === fromIndex.
    */
   begin(options) {
-    const { event, container, item, items, handle, startIndex, onReorder, onCancel } = options;
+    const { event, container, item, items, handle, startIndex, onReorder } = options;
 
     if (this._drag || !event.isPrimary) return false;
     if (event.pointerType === "mouse" && event.button !== 0) return false;
@@ -56,7 +55,6 @@ export const DragReorderController = {
       lastY: event.clientY,
       slotHeight,
       onReorder,
-      onCancel,
       onMove: (e) => this._onPointerMove(e),
       onEnd: (e) => this._onPointerEnd(e)
     };
@@ -176,14 +174,13 @@ export const DragReorderController = {
     }
 
     this._drag = null;
-    const { container, item, items, startIndex, targetIndex, slotHeight, onReorder, onCancel } = drag;
+    const { container, item, items, startIndex, targetIndex, slotHeight, onReorder } = drag;
 
     if (cancelled || targetIndex === startIndex) {
       item.style.transition = "transform 0.15s ease-out";
       item.style.transform = "";
       setTimeout(() => {
         this._cleanupStyles(container, items);
-        if (typeof onCancel === "function") onCancel();
       }, 150);
       return;
     }

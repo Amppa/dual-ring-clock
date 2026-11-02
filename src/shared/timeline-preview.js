@@ -4,7 +4,7 @@
 
 import { State } from "./state.js";
 import { CONFIG } from "./config.js";
-import { PeriodUtils, TimeUtils, I18nUtils, EscapeUtils, TimelineUtils } from "./utils.js";
+import { MathUtils, PeriodUtils, TimeUtils, I18nUtils, EscapeUtils, TimelineUtils } from "./utils.js";
 
 export const TimelinePreview = {
   /**
@@ -450,15 +450,7 @@ export const TimelinePreview = {
       api.renderScrubLine();
       api.renderNightArea(State.selectedOffsetHours);
     });
-  },
-
-  /** Full repaint: rows + now-line + scrub markers + intervals. */
-  renderAll(refs) {
-    this.renderRows(refs);
-    this.renderNowLine(refs);
-    this.renderScrubLine(refs);
-    this.renderIntervals(refs);
-  },
+  }
 };
 
 if (typeof globalThis !== "undefined") {
