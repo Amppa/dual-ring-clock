@@ -4,12 +4,11 @@
 
 import { State } from "./state.js";
 import { CONFIG } from "./config.js";
-import { PeriodUtils, TimeUtils, I18nUtils, EscapeUtils, TimelineUtils } from "./utils.js";
+import { MathUtils, PeriodUtils, TimeUtils, I18nUtils, EscapeUtils, TimelineUtils } from "./utils.js";
 
 export const TimelinePreview = {
   /**
-   * Collect the nodes this module renders into. `root` is `document`
-   * in the popup or the mount element built by buildPreview().
+   * Collect the nodes this module renders into.
    */
   collectRefs(root) {
     const q = (sel) => root.querySelector(sel);
@@ -21,46 +20,6 @@ export const TimelinePreview = {
       nowLine: q("#nowLine"),
       scrubLinesContainer: q("#scrubLinesContainer"),
     };
-  },
-
-  /**
-   * Build a standalone timeline (rows + now-line + scrub layer) into `mount`.
-   */
-  buildPreview(mount) {
-    mount.innerHTML = "";
-
-    const panel = document.createElement("div");
-    panel.className = "timeline-panel";
-
-    const rows = document.createElement("div");
-    rows.id = "timelineRows";
-    rows.className = "timeline-rows";
-    panel.append(rows);
-
-    const overlay = document.createElement("div");
-    overlay.id = "timelineTrackOverlay";
-    overlay.className = "timeline-track-overlay";
-
-    const intervals = document.createElement("div");
-    intervals.id = "timelineIntervalsContainer";
-    intervals.className = "timeline-intervals-container";
-    intervals.setAttribute("aria-hidden", "true");
-    overlay.append(intervals);
-
-    const nowLine = document.createElement("div");
-    nowLine.id = "nowLine";
-    nowLine.className = "timeline-vline now-line";
-    nowLine.setAttribute("aria-hidden", "true");
-    overlay.append(nowLine);
-
-    const scrubs = document.createElement("div");
-    scrubs.id = "scrubLinesContainer";
-    overlay.append(scrubs);
-
-    panel.append(overlay);
-
-    mount.append(panel);
-    return this.collectRefs(mount);
   },
 
   renderRows(refs) {
@@ -491,15 +450,7 @@ export const TimelinePreview = {
       api.renderScrubLine();
       api.renderNightArea(State.selectedOffsetHours);
     });
-  },
-
-  /** Full repaint: rows + now-line + scrub markers + intervals. */
-  renderAll(refs) {
-    this.renderRows(refs);
-    this.renderNowLine(refs);
-    this.renderScrubLine(refs);
-    this.renderIntervals(refs);
-  },
+  }
 };
 
 if (typeof globalThis !== "undefined") {

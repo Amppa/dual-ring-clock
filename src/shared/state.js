@@ -58,7 +58,6 @@ export const State = {
   clockDialTheme: "gradient", // CONFIG.clockDialThemes
   scrubs: [],             // array of { id, fraction } objects
   activeScrubId: null,    // id of the active scrub line
-  draggingId: null,
   cityLimit: 10,
   _localCity: null,
   _cachedCityList: null,
@@ -92,7 +91,6 @@ export const State = {
     this.clockDialTheme = this.resolveClockDialTheme(Storage.get(CONFIG.clockDialThemeKey));
     this.scrubs = [];
     this.activeScrubId = null;
-    this.draggingId = null;
     this.makeBaseHours();
   },
 

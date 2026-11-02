@@ -4,47 +4,17 @@
 
 import { State } from "./state.js";
 import { CONFIG } from "./config.js";
-import { MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
-
-/**
- * Transient pointer-drag bookkeeping. These hold DOM nodes, so they stay in
- * module scope instead of the persisted State singleton.
- */
-let activePointerDrag = null;
-let autoScrollRaf = null;
-
-/**
- * Return a new order with `id` moved before/after `targetId`.
- * Returns the original array when the move is a no-op or ids are unknown.
- */
-export function reorderIds(ids, id, targetId, placeAfter) {
-  const from = ids.indexOf(id);
-  const targetIndex = ids.indexOf(targetId);
-  if (from === -1 || targetIndex === -1 || id === targetId) return ids;
-
-  const list = [...ids];
-  list.splice(from, 1);
-  let insertIndex = targetIndex + (placeAfter ? 1 : 0);
-  if (from < insertIndex) insertIndex -= 1;
-  if (insertIndex === from) return ids;
-  list.splice(insertIndex, 0, id);
-  return list;
-}
+import { MathUtils, MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
+import { DragReorderController } from "./drag-reorder.js";
 
 export const CityPreview = {
-  isReordering: false,
   /**
-   * Collect the nodes this module renders into. `root` is `document` in the
-   * popup or the mount element built by each page.
+   * Collect the nodes this module renders into.
    */
   collectRefs(root) {
     const q = (sel) => root.querySelector(sel);
     return {
       currentCitiesList: q("#currentCitiesList"),
-      searchCityInput: q("#searchCityInput"),
-      searchCityBtn: q("#searchCityBtn"),
-      searchStatus: q("#searchStatus"),
-      searchResultsList: q("#searchResultsList"),
       clearAllButton: q("#clearAllButton"),
       resetButton: q("#resetButton"),
     };
@@ -52,13 +22,7 @@ export const CityPreview = {
 
   /** Clear drag state on every city card. */
   clearCardDragState(refs) {
-    document.removeEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.removeEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.removeEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    if (autoScrollRaf !== null) {
-      cancelAnimationFrame(autoScrollRaf);
-      autoScrollRaf = null;
-    }
+    DragReorderController.cancel();
     if (refs?.currentCitiesList) {
       refs.currentCitiesList.classList.remove("is-dragging-active");
     }
@@ -67,8 +31,6 @@ export const CityPreview = {
       c.style.transform = "";
       c.style.transition = "";
     });
-    activePointerDrag = null;
-    State.draggingId = null;
   },
 
   /**
@@ -78,7 +40,7 @@ export const CityPreview = {
    */
   renderCurrentCitiesList(refs, onReorder) {
     if (!refs.currentCitiesList) return;
-    if (activePointerDrag) CityPreview.clearCardDragState(refs);
+    if (DragReorderController.isDragging()) CityPreview.clearCardDragState(refs);
     refs.currentCitiesList.innerHTML = "";
 
     State.selectedIds.forEach((id) => {
@@ -142,7 +104,7 @@ export const CityPreview = {
       zoneSelect.value = currentZone;
 
       dragHandle.addEventListener("pointerdown", (e) => {
-        CityPreview.beginPointerDrag(e, card, id, refs, onReorder);
+        CityPreview.beginPointerDrag(e, card, refs, onReorder);
       });
 
       const handleAutoSave = () => {
@@ -213,10 +175,6 @@ export const CityPreview = {
       removeBtn.addEventListener("click", () => {
         const currentId = card.dataset.id || id;
         State.toggleCity(currentId);
-        if (currentId.startsWith("custom-") || State.customCities.some((c) => c.id === currentId)) {
-          State.customCities = State.customCities.filter((c) => c.id !== currentId);
-          State.saveCustomCities();
-        }
         CityPreview.renderCurrentCitiesList(refs, onReorder);
         if (typeof onReorder === "function") {
           onReorder();
@@ -227,303 +185,28 @@ export const CityPreview = {
     });
   },
 
-  beginPointerDrag(e, card, id, refs, onReorder) {
-    if (!e.isPrimary) return;
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (activePointerDrag) return;
-
+  beginPointerDrag(e, card, refs, onReorder) {
     const cards = Array.from(refs.currentCitiesList?.querySelectorAll(".current-city-card") || []);
     const startIndex = cards.indexOf(card);
     if (startIndex === -1 || cards.length <= 1) return;
 
-    e.preventDefault();
-    const handle = e.currentTarget;
-    handle.setPointerCapture?.(e.pointerId);
-
-    const slotHeight = cards.length > 1
-      ? (cards[1].getBoundingClientRect().top - cards[0].getBoundingClientRect().top)
-      : (card.offsetHeight + 6);
-
-    activePointerDrag = {
-      pointerId: e.pointerId,
-      id,
-      card,
-      handle,
-      refs,
-      onReorder,
-      startY: e.clientY,
-      lastY: e.clientY,
-      cards,
+    DragReorderController.begin({
+      event: e,
+      container: refs.currentCitiesList,
+      item: card,
+      items: cards,
+      handle: e.currentTarget,
       startIndex,
-      targetIndex: startIndex,
-      slotHeight,
-    };
+      onReorder: (fromIndex, toIndex) => {
+        const next = [...State.selectedIds];
+        const [removed] = next.splice(fromIndex, 1);
+        next.splice(toIndex, 0, removed);
+        State.selectedIds = next;
+        State.saveSelection();
 
-    State.draggingId = id;
-    card.classList.add("is-dragging");
-    refs.currentCitiesList?.classList.add("is-dragging-active");
+        CityPreview.renderCurrentCitiesList(refs, onReorder);
 
-    document.addEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.addEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.addEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    CityPreview._startAutoScroll();
-  },
-
-  _onPointerDragMove(e) {
-    const drag = activePointerDrag;
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    if (e.cancelable) e.preventDefault();
-
-    drag.lastY = e.clientY;
-    const deltaY = e.clientY - drag.startY;
-    drag.card.style.transform = `translateY(${deltaY}px)`;
-
-    const offsetSlots = Math.round(deltaY / drag.slotHeight);
-    const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
-
-    if (targetIndex !== drag.targetIndex) {
-      drag.targetIndex = targetIndex;
-      CityPreview._updateSiblingDisplacements();
-    }
-  },
-
-  _onPointerDragEnd(e) {
-    const drag = activePointerDrag;
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    CityPreview._finishPointerDrag(e.type === "pointercancel");
-  },
-
-  _updateSiblingDisplacements() {
-    const drag = activePointerDrag;
-    if (!drag) return;
-
-    const { cards, startIndex, targetIndex, slotHeight } = drag;
-    cards.forEach((c, i) => {
-      if (i === startIndex) return;
-
-      let shift = 0;
-      if (startIndex < targetIndex) {
-        if (i > startIndex && i <= targetIndex) {
-          shift = -slotHeight;
-        }
-      } else if (startIndex > targetIndex) {
-        if (i >= targetIndex && i < startIndex) {
-          shift = slotHeight;
-        }
-      }
-      c.style.transform = shift ? `translateY(${shift}px)` : "";
-    });
-  },
-
-  _startAutoScroll() {
-    if (autoScrollRaf !== null) return;
-
-    const EDGE = 72;
-    const MAX_STEP = 16;
-    const tick = () => {
-      const drag = activePointerDrag;
-      if (!drag) {
-        autoScrollRaf = null;
-        return;
-      }
-
-      const y = drag.lastY;
-      let delta = 0;
-      if (y < EDGE) {
-        delta = -Math.ceil(((EDGE - y) / EDGE) * MAX_STEP);
-      } else if (y > window.innerHeight - EDGE) {
-        delta = Math.ceil(((y - (window.innerHeight - EDGE)) / EDGE) * MAX_STEP);
-      }
-
-      if (delta !== 0) {
-        const before = window.scrollY;
-        window.scrollBy(0, delta);
-        const scrolled = window.scrollY - before;
-        if (scrolled !== 0) {
-          drag.startY -= scrolled;
-          const deltaY = drag.lastY - drag.startY;
-          drag.card.style.transform = `translateY(${deltaY}px)`;
-          const offsetSlots = Math.round(deltaY / drag.slotHeight);
-          const targetIndex = Math.max(0, Math.min(drag.cards.length - 1, drag.startIndex + offsetSlots));
-          if (targetIndex !== drag.targetIndex) {
-            drag.targetIndex = targetIndex;
-            CityPreview._updateSiblingDisplacements();
-          }
-        }
-      }
-
-      autoScrollRaf = requestAnimationFrame(tick);
-    };
-
-    autoScrollRaf = requestAnimationFrame(tick);
-  },
-
-  _finishPointerDrag(cancelled) {
-    const drag = activePointerDrag;
-    if (!drag) return;
-
-    document.removeEventListener("pointermove", CityPreview._onPointerDragMove);
-    document.removeEventListener("pointerup", CityPreview._onPointerDragEnd);
-    document.removeEventListener("pointercancel", CityPreview._onPointerDragEnd);
-    if (autoScrollRaf !== null) {
-      cancelAnimationFrame(autoScrollRaf);
-      autoScrollRaf = null;
-    }
-    if (drag.handle?.hasPointerCapture?.(drag.pointerId)) {
-      try {
-        drag.handle.releasePointerCapture(drag.pointerId);
-      } catch (_) {}
-    }
-
-    const { refs, onReorder, card, startIndex, targetIndex, slotHeight } = drag;
-
-    if (cancelled || targetIndex === startIndex) {
-      card.style.transition = "transform 0.15s ease-out";
-      card.style.transform = "";
-      setTimeout(() => {
-        CityPreview.clearCardDragState(refs);
-      }, 150);
-      return;
-    }
-
-    const finalShift = (targetIndex - startIndex) * slotHeight;
-    card.style.transition = "transform 0.15s cubic-bezier(0.2, 0, 0, 1)";
-    card.style.transform = `translateY(${finalShift}px)`;
-
-    setTimeout(() => {
-      CityPreview.clearCardDragState(refs);
-
-      const next = [...State.selectedIds];
-      const [removed] = next.splice(startIndex, 1);
-      next.splice(targetIndex, 0, removed);
-
-      State.selectedIds = next;
-      State.saveSelection();
-
-      CityPreview.isReordering = true;
-      CityPreview.renderCurrentCitiesList(refs, onReorder);
-      CityPreview.isReordering = false;
-
-      if (typeof onReorder === "function") onReorder();
-    }, 150);
-  },
-
-  /**
-   * One quiet line under the search row. Empty message hides it, so the
-   * healthy state shows nothing at all.
-   */
-  setSearchStatus(refs, message, isError = false) {
-    if (!refs.searchStatus) return;
-    refs.searchStatus.textContent = message || "";
-    refs.searchStatus.hidden = !message;
-    refs.searchStatus.classList.toggle("is-error", !!message && isError);
-  },
-
-  /**
-   * Wire the add-city search (Open-Meteo geocoding API).
-   * `onCityAdded` is called after a city is added so the page can repaint.
-   */
-  wireCitySearch(refs, onCityAdded) {
-    if (!refs.searchCityBtn) return;
-
-    document.addEventListener("click", (e) => {
-      if (refs.searchResultsList && !refs.searchResultsList.contains(e.target) && e.target !== refs.searchCityInput && e.target !== refs.searchCityBtn) {
-        refs.searchResultsList.hidden = true;
-      }
-    });
-
-    const triggerSearch = () => {
-      const query = refs.searchCityInput.value.trim();
-      if (!query) return;
-
-      refs.searchCityBtn.textContent = "⏳";
-      refs.searchCityBtn.style.pointerEvents = "none";
-      CityPreview.setSearchStatus(refs, "");
-      refs.searchResultsList.hidden = true;
-      refs.searchResultsList.innerHTML = "";
-
-      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.results && data.results.length > 0) {
-            refs.searchResultsList.innerHTML = "";
-            data.results.forEach((result) => {
-              const card = document.createElement("div");
-              card.className = "search-result-card";
-
-              const locationParts = [];
-              if (result.country) locationParts.push(result.country);
-              if (result.admin1) locationParts.push(result.admin1);
-              const subtitleText = locationParts.length > 0 ? ` (${locationParts.join(", ")})` : "";
-
-              const lng = result.longitude || 0;
-              const lat = result.latitude || 0;
-
-              card.innerHTML = `
-                <div class="search-result-info">
-                  <div class="search-result-name-row">
-                    <span class="search-result-name">${EscapeUtils.html(result.name)}</span>
-                    <span class="search-result-country">${EscapeUtils.html(subtitleText)}</span>
-                  </div>
-                  <div class="search-result-details">${EscapeUtils.html(result.timezone || "UTC")} (Lng: ${lng.toFixed(1)}, Lat: ${lat.toFixed(1)})</div>
-                </div>
-              `;
-
-              card.addEventListener("click", (evt) => {
-                evt.stopPropagation();
-
-                if (State.selectedIds.length >= State.cityLimit) {
-                  CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("cityLimitReached"), true);
-                  return;
-                }
-
-                const newCity = {
-                  id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                  name: result.name,
-                  zone: result.timezone || "UTC",
-                  x: MathUtils.clamp(MapUtils.lngToX(lng), 0, 100),
-                  y: MathUtils.clamp(MapUtils.latToY(lat), 0, 100),
-                  lng: lng,
-                  lat: lat
-                };
-
-                State.customCities = [...State.customCities, newCity];
-                State.saveCustomCities();
-                State.toggleCity(newCity.id);
-                if (onCityAdded) onCityAdded();
-
-                refs.searchCityInput.value = "";
-                refs.searchResultsList.hidden = true;
-                refs.searchResultsList.innerHTML = "";
-              });
-
-              refs.searchResultsList.append(card);
-            });
-            refs.searchResultsList.hidden = false;
-          } else {
-            CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("cityNotFound"), true);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("searchNetworkError"), true);
-        })
-        .finally(() => {
-          refs.searchCityBtn.textContent = I18nUtils.getTranslation("searchBtn") || "Search";
-          refs.searchCityBtn.style.pointerEvents = "auto";
-        });
-    };
-
-    refs.searchCityBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      triggerSearch();
-    });
-
-    refs.searchCityInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        triggerSearch();
+        if (typeof onReorder === "function") onReorder();
       }
     });
   },
