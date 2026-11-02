@@ -4,7 +4,7 @@
 
 import { State } from "./state.js";
 import { CONFIG } from "./config.js";
-import { MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
+import { MathUtils, MapUtils, TimeUtils, I18nUtils, EscapeUtils } from "./utils.js";
 
 /**
  * Transient pointer-drag bookkeeping. These hold DOM nodes, so they stay in
@@ -34,17 +34,12 @@ export function reorderIds(ids, id, targetId, placeAfter) {
 export const CityPreview = {
   isReordering: false,
   /**
-   * Collect the nodes this module renders into. `root` is `document` in the
-   * popup or the mount element built by each page.
+   * Collect the nodes this module renders into.
    */
   collectRefs(root) {
     const q = (sel) => root.querySelector(sel);
     return {
       currentCitiesList: q("#currentCitiesList"),
-      searchCityInput: q("#searchCityInput"),
-      searchCityBtn: q("#searchCityBtn"),
-      searchStatus: q("#searchStatus"),
-      searchResultsList: q("#searchResultsList"),
       clearAllButton: q("#clearAllButton"),
       resetButton: q("#resetButton"),
     };
@@ -213,10 +208,6 @@ export const CityPreview = {
       removeBtn.addEventListener("click", () => {
         const currentId = card.dataset.id || id;
         State.toggleCity(currentId);
-        if (currentId.startsWith("custom-") || State.customCities.some((c) => c.id === currentId)) {
-          State.customCities = State.customCities.filter((c) => c.id !== currentId);
-          State.saveCustomCities();
-        }
         CityPreview.renderCurrentCitiesList(refs, onReorder);
         if (typeof onReorder === "function") {
           onReorder();
@@ -406,126 +397,6 @@ export const CityPreview = {
 
       if (typeof onReorder === "function") onReorder();
     }, 150);
-  },
-
-  /**
-   * One quiet line under the search row. Empty message hides it, so the
-   * healthy state shows nothing at all.
-   */
-  setSearchStatus(refs, message, isError = false) {
-    if (!refs.searchStatus) return;
-    refs.searchStatus.textContent = message || "";
-    refs.searchStatus.hidden = !message;
-    refs.searchStatus.classList.toggle("is-error", !!message && isError);
-  },
-
-  /**
-   * Wire the add-city search (Open-Meteo geocoding API).
-   * `onCityAdded` is called after a city is added so the page can repaint.
-   */
-  wireCitySearch(refs, onCityAdded) {
-    if (!refs.searchCityBtn) return;
-
-    document.addEventListener("click", (e) => {
-      if (refs.searchResultsList && !refs.searchResultsList.contains(e.target) && e.target !== refs.searchCityInput && e.target !== refs.searchCityBtn) {
-        refs.searchResultsList.hidden = true;
-      }
-    });
-
-    const triggerSearch = () => {
-      const query = refs.searchCityInput.value.trim();
-      if (!query) return;
-
-      refs.searchCityBtn.textContent = "⏳";
-      refs.searchCityBtn.style.pointerEvents = "none";
-      CityPreview.setSearchStatus(refs, "");
-      refs.searchResultsList.hidden = true;
-      refs.searchResultsList.innerHTML = "";
-
-      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.results && data.results.length > 0) {
-            refs.searchResultsList.innerHTML = "";
-            data.results.forEach((result) => {
-              const card = document.createElement("div");
-              card.className = "search-result-card";
-
-              const locationParts = [];
-              if (result.country) locationParts.push(result.country);
-              if (result.admin1) locationParts.push(result.admin1);
-              const subtitleText = locationParts.length > 0 ? ` (${locationParts.join(", ")})` : "";
-
-              const lng = result.longitude || 0;
-              const lat = result.latitude || 0;
-
-              card.innerHTML = `
-                <div class="search-result-info">
-                  <div class="search-result-name-row">
-                    <span class="search-result-name">${EscapeUtils.html(result.name)}</span>
-                    <span class="search-result-country">${EscapeUtils.html(subtitleText)}</span>
-                  </div>
-                  <div class="search-result-details">${EscapeUtils.html(result.timezone || "UTC")} (Lng: ${lng.toFixed(1)}, Lat: ${lat.toFixed(1)})</div>
-                </div>
-              `;
-
-              card.addEventListener("click", (evt) => {
-                evt.stopPropagation();
-
-                if (State.selectedIds.length >= State.cityLimit) {
-                  CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("cityLimitReached"), true);
-                  return;
-                }
-
-                const newCity = {
-                  id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                  name: result.name,
-                  zone: result.timezone || "UTC",
-                  x: MathUtils.clamp(MapUtils.lngToX(lng), 0, 100),
-                  y: MathUtils.clamp(MapUtils.latToY(lat), 0, 100),
-                  lng: lng,
-                  lat: lat
-                };
-
-                State.customCities = [...State.customCities, newCity];
-                State.saveCustomCities();
-                State.toggleCity(newCity.id);
-                if (onCityAdded) onCityAdded();
-
-                refs.searchCityInput.value = "";
-                refs.searchResultsList.hidden = true;
-                refs.searchResultsList.innerHTML = "";
-              });
-
-              refs.searchResultsList.append(card);
-            });
-            refs.searchResultsList.hidden = false;
-          } else {
-            CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("cityNotFound"), true);
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          CityPreview.setSearchStatus(refs, I18nUtils.getTranslation("searchNetworkError"), true);
-        })
-        .finally(() => {
-          refs.searchCityBtn.textContent = I18nUtils.getTranslation("searchBtn") || "Search";
-          refs.searchCityBtn.style.pointerEvents = "auto";
-        });
-    };
-
-    refs.searchCityBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      triggerSearch();
-    });
-
-    refs.searchCityInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        triggerSearch();
-      }
-    });
   },
 
   /**

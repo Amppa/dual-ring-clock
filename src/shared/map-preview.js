@@ -18,8 +18,7 @@ export const MapPreview = {
   },
 
   /**
-   * Collect the nodes this module renders into. `root` is `document`
-   * in the popup or the mount element built by buildPreview().
+   * Collect the nodes this module renders into.
    */
   collectRefs(root) {
     const q = (sel) => root.querySelector(sel);
@@ -35,66 +34,6 @@ export const MapPreview = {
       nightPathRef: q("#nightPathRef"),
       mapTimeline: q(".map-timeline"),
     };
-  },
-
-  /**
-   * Build a standalone preview (map shell + timeline strip) into `mount`.
-   * Same relative asset path works from src/popup/ and src/options/.
-   */
-  buildPreview(mount) {
-    mount.innerHTML = "";
-
-    const shell = document.createElement("div");
-    shell.className = "map-shell";
-
-    const img = document.createElement("img");
-    img.className = "world-map";
-    img.src = this.ASSET_PATH;
-    img.alt = "World Map";
-    shell.append(img);
-
-    const hourLines = document.createElement("div");
-    hourLines.className = "hour-lines";
-    hourLines.setAttribute("aria-hidden", "true");
-    shell.append(hourLines);
-
-    const svgNS = "http://www.w3.org/2000/svg";
-    const overlay = document.createElementNS(svgNS, "svg");
-    overlay.setAttribute("class", "night-area-overlay");
-    overlay.setAttribute("viewBox", "0 0 100 100");
-    overlay.setAttribute("preserveAspectRatio", "none");
-    overlay.setAttribute("aria-hidden", "true");
-    const nightPath = document.createElementNS(svgNS, "path");
-    nightPath.setAttribute("id", "nightPath");
-    nightPath.setAttribute("d", "");
-    const nightPathRef = document.createElementNS(svgNS, "path");
-    nightPathRef.setAttribute("id", "nightPathRef");
-    nightPathRef.setAttribute("d", "");
-    overlay.append(nightPath, nightPathRef);
-    shell.append(overlay);
-
-    const hoverBands = document.createElement("div");
-    hoverBands.id = "timezoneHoverBands";
-    hoverBands.className = "timezone-hover-bands";
-    shell.append(hoverBands);
-
-    const cityLayer = document.createElement("div");
-    cityLayer.className = "city-layer";
-    cityLayer.setAttribute("aria-label", "City Pins");
-    shell.append(cityLayer);
-
-    const labelLayer = document.createElement("div");
-    labelLayer.className = "map-time-label-layer";
-    labelLayer.setAttribute("aria-hidden", "true");
-    shell.append(labelLayer);
-
-    const timeline = document.createElement("div");
-    timeline.id = "mapTimeline";
-    timeline.className = "map-timeline";
-    timeline.setAttribute("aria-hidden", "true");
-
-    mount.append(shell, timeline);
-    return this.collectRefs(mount);
   },
 
   _createPinElement(city, isSelected, currentOffset, subsolarLng, nightCurve = null) {
