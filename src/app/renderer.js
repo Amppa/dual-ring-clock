@@ -3,52 +3,54 @@
  */
 
 import { State } from "../shared/state.js";
-import { TimeUtils, TimelineUtils } from "../shared/utils.js";
 import { MapPreview } from "../shared/map-preview.js";
 import { TimelinePreview } from "../shared/timeline-preview.js";
 
 export const Renderer = {
-  renderNowText() {
-    const el = document.getElementById("nowText");
-    if (!el) return;
-    const localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const dateStr = `${year}/${month}/${day}`;
-    const timeStr = TimeUtils.formatTime(now, localZone);
-    el.innerHTML = `<span class="now-time">${timeStr}</span><span class="now-date">${dateStr}</span>`;
+  _mapRefs: null,
+  _timelineRefs: null,
+
+  getMapRefs() {
+    if (!this._mapRefs) {
+      this._mapRefs = MapPreview.collectRefs(document);
+    }
+    return this._mapRefs;
+  },
+
+  getTimelineRefs() {
+    if (!this._timelineRefs) {
+      this._timelineRefs = TimelinePreview.collectRefs(document);
+    }
+    return this._timelineRefs;
   },
 
   renderMapImmediate() {
-    MapPreview.renderPinsImmediate(MapPreview.collectRefs(document), () => Renderer.render());
+    MapPreview.renderPinsImmediate(this.getMapRefs(), () => this.render());
   },
 
   renderMapDeferred() {
-    const refs = MapPreview.collectRefs(document);
+    const refs = this.getMapRefs();
     MapPreview.mountDeferredPins(refs);
     MapPreview.renderNightDecorations(refs, State.selectedOffsetHours);
   },
 
   renderRows() {
-    TimelinePreview.renderRows(TimelinePreview.collectRefs(document));
+    TimelinePreview.renderRows(this.getTimelineRefs());
   },
 
   renderNightArea(offsetHours = 0, skipPinsUpdate = false) {
-    MapPreview.renderNightArea(MapPreview.collectRefs(document), offsetHours, skipPinsUpdate);
+    MapPreview.renderNightArea(this.getMapRefs(), offsetHours, skipPinsUpdate);
   },
 
   applyVisibilitySettings() {
-    MapPreview.applyVisibility(MapPreview.collectRefs(document));
+    MapPreview.applyVisibility(this.getMapRefs());
   },
 
   render() {
     State.makeBaseHours();
-    this.renderNowText();
     this.renderMapImmediate();
     this.renderRows();
-    const timelineRefs = TimelinePreview.collectRefs(document);
+    const timelineRefs = this.getTimelineRefs();
     TimelinePreview.renderNowLine(timelineRefs);
     TimelinePreview.renderScrubLine(timelineRefs);
     this.renderNightArea(State.selectedOffsetHours, true);
@@ -62,15 +64,15 @@ export const Renderer = {
   },
 
   renderNowLine() {
-    TimelinePreview.renderNowLine(TimelinePreview.collectRefs(document));
+    TimelinePreview.renderNowLine(this.getTimelineRefs());
   },
 
   renderScrubLine() {
-    TimelinePreview.renderScrubLine(TimelinePreview.collectRefs(document));
+    TimelinePreview.renderScrubLine(this.getTimelineRefs());
   },
 
   renderIntervals() {
-    TimelinePreview.renderIntervals(TimelinePreview.collectRefs(document));
+    TimelinePreview.renderIntervals(this.getTimelineRefs());
   }
 };
 

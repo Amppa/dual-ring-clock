@@ -71,12 +71,12 @@ async function init() {
   ClockView.init();
   SettingsController.init();
 
-  TimelinePreview.wireScrub(TimelinePreview.collectRefs(document), {
+  TimelinePreview.wireScrub(Renderer.getTimelineRefs(), {
     renderScrubLine: () => Renderer.renderScrubLine(),
     renderNightArea: (offsetHours) => Renderer.renderNightArea(offsetHours)
   });
 
-  MapPreview.wireMapClick(MapPreview.collectRefs(document), () => {
+  MapPreview.wireMapClick(Renderer.getMapRefs(), () => {
     Renderer.render();
     if (currentView === "settings") SettingsController.renderCities();
   });

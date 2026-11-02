@@ -1,6 +1,5 @@
 export const i18nTranslations = {
   zh: {
-    nowTextLoading: "正在讀取目前時間",
     navClock: "時鐘",
     navTimeline: "時間軸",
     navSettings: "設定",
@@ -72,7 +71,6 @@ export const i18nTranslations = {
     sponsorBtn: "☕ Buy me a coffee",
   },
   en: {
-    nowTextLoading: "Loading current time...",
     navClock: "Clock",
     navTimeline: "Timeline",
     navSettings: "Settings",
@@ -144,7 +142,6 @@ export const i18nTranslations = {
     sponsorBtn: "☕ Buy me a coffee",
   },
   es: {
-    nowTextLoading: "Cargando la hora actual...",
     navClock: "Reloj",
     navTimeline: "Cronología",
     navSettings: "Ajustes",
