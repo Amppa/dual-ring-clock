@@ -43,7 +43,7 @@ export const CONFIG = {
     heightScale: 1.39,
     mapYOffset: 30,
     showNightArea: true,
-    showHourLines: true,
+    showHourLines: false,
     showCityTimes: true
   },
   defaultTimePeriods: [

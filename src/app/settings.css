@@ -110,47 +110,6 @@
   margin: 0;
 }
 
-/* Collapsible card (native details/summary, e.g. map texture calibration) */
-.collapsible-card {
-  padding-bottom: var(--space-xl);
-}
-
-.collapsible-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-
-  & .section-title {
-    margin-bottom: 0;
-  }
-
-  &::-webkit-details-marker {
-    display: none;
-  }
-
-  &::after {
-    content: "▼";
-    font-size: 10px;
-    color: var(--text-secondary);
-    transition: transform var(--transition-fast);
-    flex-shrink: 0;
-  }
-}
-
-details[open]>.collapsible-summary::after {
-  transform: rotate(180deg);
-}
-
-.collapsible-body {
-  margin-top: var(--space-lg);
-  border-top: 1px solid var(--divider);
-  padding-top: var(--space-md);
-}
-
 /* Reset & Secondary Action Buttons */
 .reset-btn {
   background: var(--input-bg);
@@ -173,105 +132,6 @@ details[open]>.collapsible-summary::after {
   &:active {
     transform: none;
   }
-}
-
-/* Slider Controls in Minimap Card */
-.slider-control-group {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.slider-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
-
-.stepper-btn {
-  width: 28px;
-  height: 28px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  color: var(--text-primary);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: none;
-
-  &:hover {
-    background: var(--btn-bg-hover);
-    border-color: var(--input-focus-border);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.settings-slider {
-  flex: 1;
-  width: auto;
-  min-width: 80px;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: var(--track-off);
-  border-radius: var(--radius-pill);
-  outline: none;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--knob);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    transition: transform var(--transition-fast);
-
-    &:hover {
-      transform: scale(1.15);
-    }
-  }
-
-  &::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--knob);
-    border: none;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    transition: transform var(--transition-fast);
-
-    &:hover {
-      transform: scale(1.15);
-    }
-  }
-}
-
-.val-badge {
-  min-width: 46px;
-  text-align: right;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: var(--font-xs);
-  font-weight: 400;
-  color: var(--text-primary);
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
 }
 
 .styled-select {
@@ -352,34 +212,6 @@ details[open]>.collapsible-summary::after {
 .settings-column .settings-card .section-title {
   font-size: var(--font-lg);
   margin-bottom: var(--space-md);
-}
-
-.settings-column .settings-card .collapsible-summary .section-title {
-  margin-bottom: 0;
-}
-
-/* Map Texture Calibration Sliders in 360px Column.
-   Pinned explicitly here rather than left to the shared rule: a label and a
-   slider side by side need more than 360px, so the column must never fall
-   back to a horizontal arrangement. */
-.settings-column .slider-control-group {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.settings-column .slider-control-group .slider-control {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
-
-.settings-column .slider-control-group .settings-slider {
-  flex: 1;
-  width: auto;
-  min-width: 80px;
 }
 
 /* Sponsor Card in Settings Column */

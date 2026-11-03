@@ -46,7 +46,6 @@ export const SettingsController = {
     this.wireCities();
     this.wireAppearance();
     this.wireClock();
-    this.wireMapSettings();
     this.wirePeriods();
     this.refresh();
   },
@@ -55,7 +54,6 @@ export const SettingsController = {
     this.renderCities();
     this.renderAppearance();
     this.renderClock();
-    this.renderMapControls();
     this.renderPeriodControls();
   },
 
@@ -217,91 +215,6 @@ export const SettingsController = {
     if (dialThemeSelect) {
       dialThemeSelect.addEventListener("change", () => {
         State.saveClockDialTheme(dialThemeSelect.value);
-      });
-    }
-  },
-
-  formatSettingValue(key, val) {
-    const num = Number(val);
-    if (key.endsWith("Scale")) return num.toFixed(2);
-    if (key === "mapYOffset") return String(Math.round(num));
-    return num.toFixed(1);
-  },
-
-  renderMapControls() {
-    const settings = State.mapSettings || CONFIG.defaultMapSettings;
-
-    ["showNightArea", "showHourLines", "showCityTimes"].forEach((key) => {
-      const checkbox = document.querySelector(`input[type="checkbox"][data-setting="${key}"]`);
-      if (checkbox) {
-        checkbox.checked = !!settings[key];
-      }
-    });
-
-    ["lngOffset", "latOffset", "widthScale", "heightScale", "mapYOffset"].forEach((key) => {
-      const slider = document.querySelector(`input[type="range"][data-setting="${key}"]`);
-      const output = document.querySelector(`output[data-output="${key}"]`);
-      const val = settings[key] !== undefined ? settings[key] : CONFIG.defaultMapSettings[key];
-
-      if (slider) slider.value = String(val);
-      if (output) output.textContent = this.formatSettingValue(key, val);
-    });
-  },
-
-  updateMapSetting(key, value) {
-    const input = document.querySelector(`[data-setting="${key}"]`);
-    if (!input) return;
-
-    const min = Number(input.min);
-    const max = Number(input.max);
-    const next = MathUtils.clamp(Number(value), min, max);
-
-    State.mapSettings = {
-      ...State.mapSettings,
-      [key]: key.endsWith("Scale") ? Number(next.toFixed(2)) : (key === "mapYOffset" ? Math.round(next) : Number(next.toFixed(1)))
-    };
-    State.saveMapSettings();
-
-    input.value = String(State.mapSettings[key]);
-    const output = document.querySelector(`output[data-output="${key}"]`);
-    if (output) {
-      output.textContent = this.formatSettingValue(key, State.mapSettings[key]);
-    }
-    Renderer.render();
-  },
-
-  wireMapSettings() {
-    document.querySelectorAll("input[type='checkbox'][data-setting]").forEach((checkbox) => {
-      checkbox.addEventListener("change", () => {
-        const key = checkbox.dataset.setting;
-        State.mapSettings[key] = checkbox.checked;
-        State.saveMapSettings();
-        Renderer.render();
-      });
-    });
-
-    document.querySelectorAll("input[type='range'][data-setting]").forEach((slider) => {
-      slider.addEventListener("input", () => {
-        this.updateMapSetting(slider.dataset.setting, slider.value);
-      });
-    });
-
-    document.querySelectorAll("[data-adjust]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const key = button.dataset.adjust;
-        const delta = Number(button.dataset.delta);
-        const current = State.mapSettings[key] !== undefined ? State.mapSettings[key] : CONFIG.defaultMapSettings[key];
-        this.updateMapSetting(key, current + delta);
-      });
-    });
-
-    const resetMapButton = document.getElementById("resetMapButton");
-    if (resetMapButton) {
-      resetMapButton.addEventListener("click", () => {
-        State.mapSettings = { ...CONFIG.defaultMapSettings };
-        State.saveMapSettings();
-        this.renderMapControls();
-        Renderer.render();
       });
     }
   },

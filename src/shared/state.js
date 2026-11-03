@@ -141,25 +141,7 @@ export const State = {
   },
 
   loadMapSettings() {
-    const saved = Storage.get(CONFIG.mapSettingsKey);
-    if (saved && typeof saved === "object") {
-      return {
-        ...CONFIG.defaultMapSettings,
-        lngOffset: Number.isFinite(Number(saved.lngOffset)) ? Number(saved.lngOffset) : CONFIG.defaultMapSettings.lngOffset,
-        latOffset: Number.isFinite(Number(saved.latOffset)) ? Number(saved.latOffset) : CONFIG.defaultMapSettings.latOffset,
-        widthScale: Number.isFinite(Number(saved.widthScale)) ? Number(saved.widthScale) : CONFIG.defaultMapSettings.widthScale,
-        heightScale: Number.isFinite(Number(saved.heightScale)) ? Number(saved.heightScale) : CONFIG.defaultMapSettings.heightScale,
-        mapYOffset: Number.isFinite(Number(saved.mapYOffset)) ? Number(saved.mapYOffset) : CONFIG.defaultMapSettings.mapYOffset,
-        showNightArea: saved.showNightArea !== undefined ? !!saved.showNightArea : CONFIG.defaultMapSettings.showNightArea,
-        showHourLines: saved.showHourLines !== undefined ? !!saved.showHourLines : CONFIG.defaultMapSettings.showHourLines,
-        showCityTimes: saved.showCityTimes !== undefined ? !!saved.showCityTimes : CONFIG.defaultMapSettings.showCityTimes
-      };
-    }
     return { ...CONFIG.defaultMapSettings };
-  },
-
-  saveMapSettings() {
-    Storage.set(CONFIG.mapSettingsKey, this.mapSettings);
   },
 
   resolveCustomCities(saved) {
