@@ -444,7 +444,7 @@ export const TimelineUtils = {
     const now = new Date();
     let hours, minutes;
 
-    if (typeof State !== "undefined" && State.nowLineMode === "firstCity" && State.selectedIds.length > 0) {
+    if (typeof State !== "undefined" && State.selectedIds.length > 0) {
       const firstCity = State.findCity(State.selectedIds[0]);
       if (firstCity) {
         const zone = TimeUtils.resolveZone(firstCity.zone);

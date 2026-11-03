@@ -2,6 +2,7 @@
  * TimeMapper - 24-hour clock view
  */
 
+import { CONFIG } from "../shared/config.js";
 import { State } from "../shared/state.js";
 import { TimeUtils, I18nUtils, EscapeUtils } from "../shared/utils.js";
 import { DragReorderController } from "../shared/drag-reorder.js";
@@ -12,40 +13,12 @@ const INNER_RADIUS = 88;
 const INNER_WIDTH = 20;
 const OUTER_RADIUS = 112;
 const OUTER_WIDTH = 20;
-const RING_GRADIENT_STEPS = 16;
 const MINUTE_TICK_OUTER_RADIUS = 74;
 const MINUTE_TICK_INNER_RADIUS = 71;
 const MINUTE_NUMERAL_RADIUS = 67;
 const MINUTE_STEP_DEG = 6;
 
-/** Segments walk clockwise; half-hour seams land between numeral badges, whole-hour seams cut through them. */
-const RING_LAYOUTS = {
-  twoTone: {
-    solids: [
-      { start: 6, end: 18, tone: "day" },
-      { start: 18, end: 6, tone: "evening" }
-    ],
-    transitions: []
-  },
-  gradient: {
-    solids: [
-      { start: 6.5, end: 17.5, tone: "day" },
-      { start: 18.5, end: 5.5, tone: "evening" }
-    ],
-    transitions: [
-      { start: 17.5, end: 18.5, from: "day", to: "evening" },
-      { start: 5.5, end: 6.5, from: "evening", to: "day" }
-    ]
-  },
-  timeline: {
-    solids: [
-      { start: 8, end: 18, tone: "day" },
-      { start: 18, end: 0, tone: "mid" },
-      { start: 0, end: 8, tone: "evening" }
-    ],
-    transitions: []
-  }
-};
+const PERIOD_TONES = ["mid", "day", "mid", "evening"];
 
 const zoneFormatters = new Map();
 
@@ -98,25 +71,18 @@ function dayOrdinal(date, zone) {
   return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
 }
 
-function buildRingPaths(radius, width, offsetHours, theme) {
-  const { solids, transitions } = RING_LAYOUTS[theme];
-  const paths = solids.map(
-    ({ start, end, tone }) =>
-      `<path class="clock-ring--${tone}" d="${ringArc(start, end, radius, offsetHours)}" style="stroke-width: ${width}"></path>`
-  );
+function buildRingPaths(radius, width, offsetHours) {
+  const periods = State.timePeriods && State.timePeriods.length === 4
+    ? State.timePeriods
+    : CONFIG.defaultTimePeriods;
 
-  transitions.forEach(({ start, end, from, to }) => {
-    const step = (end - start) / RING_GRADIENT_STEPS;
-    for (let i = 0; i < RING_GRADIENT_STEPS; i += 1) {
-      const mix = Math.round(((i + 0.5) / RING_GRADIENT_STEPS) * 100);
-      const stroke = `color-mix(in srgb, var(--clock-ring-${to}) ${mix}%, var(--clock-ring-${from}))`;
-      paths.push(
-        `<path d="${ringArc(start + step * i, start + step * (i + 1), radius, offsetHours)}" style="stroke-width: ${width}; stroke: var(--clock-ring-${from}); stroke: ${stroke}"></path>`
-      );
-    }
+  return periods.map((period, i) => {
+    const nextPeriod = periods[(i + 1) % periods.length];
+    const start = period.start;
+    const end = nextPeriod.start;
+    const tone = PERIOD_TONES[i] || "day";
+    return `<path class="clock-ring--${tone}" d="${ringArc(start, end, radius, offsetHours)}" style="stroke-width: ${width}"></path>`;
   });
-
-  return paths;
 }
 
 function buildRingScale(radius, width, offsetHours) {
@@ -228,7 +194,8 @@ export const ClockView = {
     const { city1, city2, zone1, zone2, offset1, offset2, configs } = this._ringConfigs(now);
     this._current = { city1, city2 };
 
-    const signature = `${zone1}|${offset1}|${zone2}|${offset2}|${State.clockDialTheme}`;
+    const periodSig = (State.timePeriods || []).map((p) => p.start).join(",");
+    const signature = `${zone1}|${offset1}|${zone2}|${offset2}|${periodSig}`;
     if (signature === this._ringSignature) return;
     this._ringSignature = signature;
 
@@ -238,7 +205,7 @@ export const ClockView = {
     const numeralParts = [];
 
     configs.forEach(({ radius, width, offset }) => {
-      ringParts.push(...buildRingPaths(radius, width, offset, State.clockDialTheme));
+      ringParts.push(...buildRingPaths(radius, width, offset));
       const scale = buildRingScale(radius, width, offset);
       tickParts.push(...scale.ticks);
       badgeParts.push(...scale.badges);

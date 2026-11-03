@@ -553,14 +553,6 @@
    Interactive 24-Hour Grid Timeline & Period Boundaries
    ========================================================================== */
 
-/* Numeric select: keeps a stable minimum width and centres the digit.
-   Weight, height, radius and font come from the shared .styled-select
-   base so it matches every other dropdown on the page. */
-.period-count-select {
-  min-width: 64px;
-  text-align: center;
-}
-
 .period-timeline-header {
   padding-bottom: 0;
 }

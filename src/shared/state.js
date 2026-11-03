@@ -54,8 +54,7 @@ export const State = {
     I18nUtils.setLang(lang);
   },
   baseHours: [],
-  nowLineMode: "local",   // 'local' | 'firstCity'
-  clockDialTheme: "gradient", // CONFIG.clockDialThemes
+  nowLineMode: "firstCity",
   scrubs: [],             // array of { id, fraction } objects
   activeScrubId: null,    // id of the active scrub line
   cityLimit: 10,
@@ -87,8 +86,7 @@ export const State = {
     this.customCities = this.resolveCustomCities(Storage.get(CONFIG.customCitiesKey));
     this.cityLimit = CONFIG.maxCities;
     this.selectedIds = this.resolveSelection(Storage.get(CONFIG.storageKey));
-    this.nowLineMode = this.resolveNowLineMode(Storage.get(CONFIG.nowLineModeKey));
-    this.clockDialTheme = this.resolveClockDialTheme(Storage.get(CONFIG.clockDialThemeKey));
+    this.nowLineMode = "firstCity";
     this.scrubs = [];
     this.activeScrubId = null;
     this.makeBaseHours();
@@ -125,10 +123,10 @@ export const State = {
 
   resolveTimePeriods(saved) {
     const fallback = () => JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
-    if (Array.isArray(saved) && saved.length >= 2 && saved.length <= 4 &&
+    if (Array.isArray(saved) && saved.length === 4 &&
       saved.every((p) => p && Number.isFinite(Number(p.start)) && Number.isFinite(Number(p.end)))) {
       return saved.map((p, i) => ({
-        name: p.name || `period${i + 1}`,
+        name: p.name || CONFIG.defaultTimePeriods[i]?.name || `period${i + 1}`,
         start: Number(p.start),
         end: Number(p.end)
       }));
@@ -217,26 +215,6 @@ export const State = {
       this.allCities();
     }
     return this._cachedCityIndex.get(id);
-  },
-
-  resolveNowLineMode(saved) {
-    if (saved === "local" || saved === "firstCity") return saved;
-    return "local";
-  },
-
-  saveNowLineMode(mode) {
-    this.nowLineMode = mode;
-    Storage.set(CONFIG.nowLineModeKey, mode);
-  },
-
-  resolveClockDialTheme(saved) {
-    if (CONFIG.clockDialThemes.includes(saved)) return saved;
-    return CONFIG.defaultClockDialTheme;
-  },
-
-  saveClockDialTheme(theme) {
-    this.clockDialTheme = this.resolveClockDialTheme(theme);
-    Storage.set(CONFIG.clockDialThemeKey, this.clockDialTheme);
   },
 
   makeBaseHours() {

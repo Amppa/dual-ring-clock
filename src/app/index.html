@@ -78,50 +78,6 @@
     <div id="settingsView" class="settings-view" hidden>
       <div class="container">
         <div class="settings-column">
-          <!-- Card: 外觀 Appearance -->
-          <section class="settings-card" id="cardAppearance">
-            <h2 class="section-title" data-i18n="appearanceCardTitle">外觀</h2>
-            <div class="control-group">
-              <div class="control-label-wrap">
-                <span class="control-label" data-i18n="langSection">語言</span>
-              </div>
-              <select class="styled-select" id="mobileLangSelect" aria-label="Language">
-                <option value="auto" data-i18n="langAuto">自動</option>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="zh">中文</option>
-              </select>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="control-group">
-              <div class="control-label-wrap">
-                <span class="control-label" data-i18n="themeLabel">佈景主題</span>
-              </div>
-              <select class="styled-select" id="mobileThemeSelect" aria-label="Theme">
-                <option value="auto" data-i18n="themeAuto">自動</option>
-                <option value="light" data-i18n="themeLight">淺色</option>
-                <option value="dark" data-i18n="themeDark">深色</option>
-              </select>
-            </div>
-          </section>
-
-          <!-- Card: 時鐘 Clock -->
-          <section class="settings-card" id="cardClock">
-            <h2 class="section-title" data-i18n="clockCardTitle">時鐘</h2>
-            <div class="control-group">
-              <div class="control-label-wrap">
-                <span class="control-label" data-i18n="clockDialThemeLabel">盤面主題</span>
-              </div>
-              <select class="styled-select" id="mobileClockDialThemeSelect" aria-label="Dial Theme">
-                <option value="twoTone" data-i18n="clockDialThemeTwoTone">雙色</option>
-                <option value="gradient" selected data-i18n="clockDialThemeGradient">雙色微漸層</option>
-                <option value="timeline" data-i18n="clockDialThemeTimeline">三色</option>
-              </select>
-            </div>
-          </section>
-
           <!-- Card: 城市管理 Cities -->
           <section class="settings-card" id="cardCities">
             <h2 class="section-title" data-i18n="customCitySection">城市清單管理</h2>
@@ -149,20 +105,6 @@
           <section class="settings-card" id="cardPeriods">
             <h2 class="section-title" data-i18n="periodCardTitle">時段設定</h2>
 
-            <div class="control-group">
-              <div class="control-label-wrap">
-                <span class="control-label" id="periodCountLabel" data-i18n="periodCountLabel">時段數量</span>
-                <span class="control-desc" id="periodCountDesc" data-i18n="periodCountDesc">設定一天劃分的時段</span>
-              </div>
-              <select class="styled-select period-count-select" id="periodCountSelect" aria-label="Period Count">
-                <option value="2">2</option>
-                <option value="3" selected>3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-
-            <div class="divider"></div>
-
             <div class="control-group period-timeline-header">
               <div class="control-label-wrap">
                 <span class="control-label" data-i18n="periodTimelineLabel">時段設定</span>
@@ -177,16 +119,33 @@
                 <div class="timeline-dividers-layer" id="timelineDividersLayer"></div>
               </div>
             </div>
+          </section>
+
+          <!-- Card: 外觀 Appearance -->
+          <section class="settings-card" id="cardAppearance">
+            <h2 class="section-title" data-i18n="appearanceCardTitle">外觀</h2>
+            <div class="control-group">
+              <div class="control-label-wrap">
+                <span class="control-label" data-i18n="langSection">語言</span>
+              </div>
+              <select class="styled-select" id="mobileLangSelect" aria-label="Language">
+                <option value="auto" data-i18n="langAuto">自動</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="zh">中文</option>
+              </select>
+            </div>
 
             <div class="divider"></div>
 
             <div class="control-group">
               <div class="control-label-wrap">
-                <span class="control-label" data-i18n="nowLineMode">📍本地時間 來源</span>
+                <span class="control-label" data-i18n="themeLabel">佈景主題</span>
               </div>
-              <select class="styled-select" id="nowLineModeSelect" aria-label="Now Line Mode">
-                <option value="local" data-i18n="nowLineModeLocal">系統時間（預設）</option>
-                <option value="firstCity" data-i18n="nowLineModeFirstCity">第一個城市</option>
+              <select class="styled-select" id="mobileThemeSelect" aria-label="Theme">
+                <option value="auto" data-i18n="themeAuto">自動</option>
+                <option value="light" data-i18n="themeLight">淺色</option>
+                <option value="dark" data-i18n="themeDark">深色</option>
               </select>
             </div>
           </section>

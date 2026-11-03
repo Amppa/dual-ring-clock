@@ -45,7 +45,6 @@ export const SettingsController = {
     this.initMobileAddCity();
     this.wireCities();
     this.wireAppearance();
-    this.wireClock();
     this.wirePeriods();
     this.refresh();
   },
@@ -53,7 +52,6 @@ export const SettingsController = {
   refresh() {
     this.renderCities();
     this.renderAppearance();
-    this.renderClock();
     this.renderPeriodControls();
   },
 
@@ -203,22 +201,6 @@ export const SettingsController = {
     }
   },
 
-  renderClock() {
-    const dialThemeSelect = document.getElementById("mobileClockDialThemeSelect");
-    if (dialThemeSelect) {
-      dialThemeSelect.value = State.clockDialTheme;
-    }
-  },
-
-  wireClock() {
-    const dialThemeSelect = document.getElementById("mobileClockDialThemeSelect");
-    if (dialThemeSelect) {
-      dialThemeSelect.addEventListener("change", () => {
-        State.saveClockDialTheme(dialThemeSelect.value);
-      });
-    }
-  },
-
   renderInteractiveHours() {
     const interactiveHours = document.getElementById("interactiveHours");
     if (!interactiveHours) return;
@@ -362,48 +344,15 @@ export const SettingsController = {
   },
 
   renderPeriodControls() {
-    const nowLineModeSelect = document.getElementById("nowLineModeSelect");
-    if (nowLineModeSelect) {
-      nowLineModeSelect.value = State.nowLineMode;
-    }
-
-    const periodCountSelect = document.getElementById("periodCountSelect");
-    const count = (State.timePeriods && State.timePeriods.length) || 3;
-    if (periodCountSelect) {
-      periodCountSelect.value = String(count);
-    }
-
     this.renderInteractiveHours();
     this.renderTimelineDividers();
   },
 
   wirePeriods() {
-    const nowLineModeSelect = document.getElementById("nowLineModeSelect");
-    if (nowLineModeSelect) {
-      nowLineModeSelect.addEventListener("change", () => {
-        State.saveNowLineMode(nowLineModeSelect.value);
-        Renderer.render();
-      });
-    }
-
-    const periodCountSelect = document.getElementById("periodCountSelect");
-    if (periodCountSelect) {
-      periodCountSelect.addEventListener("change", () => {
-        const count = Number(periodCountSelect.value);
-        if (CONFIG.periodPresets[count]) {
-          State.timePeriods = JSON.parse(JSON.stringify(CONFIG.periodPresets[count]));
-          State.saveTimePeriods();
-          this.renderPeriodControls();
-          Renderer.render();
-        }
-      });
-    }
-
     const resetPeriodsButton = document.getElementById("resetPeriodsButton");
     if (resetPeriodsButton) {
       resetPeriodsButton.addEventListener("click", () => {
-        const count = (State.timePeriods && State.timePeriods.length) || 3;
-        State.timePeriods = JSON.parse(JSON.stringify(CONFIG.periodPresets[count] || CONFIG.defaultTimePeriods));
+        State.timePeriods = JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
         State.saveTimePeriods();
         this.renderPeriodControls();
         Renderer.render();
