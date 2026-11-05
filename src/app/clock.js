@@ -60,17 +60,6 @@ function timePartsInZone(date, zone) {
   };
 }
 
-function dayOrdinal(date, zone) {
-  const text = TimeUtils.getFormatter("en-CA", {
-    timeZone: zone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
-  const [year, month, day] = text.split("-").map(Number);
-  return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
-}
-
 function buildRingPaths(radius, width, offsetHours) {
   const periods = State.timePeriods && State.timePeriods.length === 4
     ? State.timePeriods
@@ -268,7 +257,6 @@ export const ClockView = {
     }
 
     const locale = I18nUtils.getLocale() || "en-US";
-    const localDay = dayOrdinal(now, this._localZone);
 
     const rows = cities.map((city, index) => {
       const zone = TimeUtils.resolveZone(city.zone);
@@ -283,13 +271,8 @@ export const ClockView = {
         month: "numeric",
         day: "numeric"
       }).format(now);
-      const shift = dayOrdinal(now, zone) - localDay;
-      const shiftText = shift > 0 ? `+${shift}` : shift < 0 ? `\u2212${Math.abs(shift)}` : "";
-      const shiftMarkup = shiftText
-        ? `<span class="clock-day-shift">${shiftText}</span>`
-        : "";
       const name = I18nUtils.getCityName(city);
-      const ariaLabel = [name, dateText, shiftText, timeText].filter(Boolean).join(" ");
+      const ariaLabel = [name, dateText, timeText].filter(Boolean).join(" ");
 
       return `<li class="clock-city-row${index > 1 ? " is-secondary" : ""}" aria-label="${EscapeUtils.html(ariaLabel)}">
         <div class="clock-city-meta">
@@ -298,7 +281,6 @@ export const ClockView = {
         </div>
         <div class="clock-city-clock">
           <span class="clock-city-date">${EscapeUtils.html(dateText)}</span>
-          ${shiftMarkup}
           <span class="clock-city-time">${EscapeUtils.html(timeText)}</span>
         </div>
       </li>`;

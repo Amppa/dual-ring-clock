@@ -132,10 +132,9 @@
   will-change: transform;
 }
 
-/* Cities 3+ drive no ring, so they read as alternates at half strength. */
+/* Cities 3+ drive no ring, so only their text reads at 50% strength while keeping the card background consistent. */
 .clock-city-row.is-secondary {
   color: color-mix(in srgb, var(--text-primary) 50%, transparent);
-  background: color-mix(in srgb, var(--bg-card) 55%, transparent);
 }
 
 .clock-city-row.is-dragging {
@@ -158,7 +157,6 @@
   opacity: 0.6;
   font-size: 1.5rem;
   line-height: 1;
-  letter-spacing: -0.15em;
   touch-action: none;
   cursor: grab;
   user-select: none;
@@ -191,15 +189,6 @@
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: inherit;
-}
-
-.clock-day-shift {
-  font-size: var(--font-xs);
-  color: inherit;
-  background: var(--btn-bg);
-  border-radius: var(--radius-pill);
-  padding: 1px 6px;
-  align-self: center;
 }
 
 .clock-city-time {
