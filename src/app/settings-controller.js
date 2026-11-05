@@ -17,18 +17,18 @@ import { Renderer } from "./renderer.js";
 const PERIOD_META = {
   2: [
     { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "night", labelKey: "periodNight", icon: "🌙" }
+    { key: "night", labelKey: "periodNight", icon: "🛌" }
   ],
   3: [
     { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "evening", labelKey: "periodEvening", icon: "🌇" },
-    { key: "night", labelKey: "periodLateNight", icon: "🌙" }
+    { key: "evening", labelKey: "periodEvening", icon: "🌙" },
+    { key: "night", labelKey: "periodLateNight", icon: "🛌" }
   ],
   4: [
     { key: "morning", labelKey: "periodMorning", icon: "🌅" },
     { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "evening", labelKey: "periodEvening", icon: "🌇" },
-    { key: "night", labelKey: "periodNight", icon: "🌙" }
+    { key: "evening", labelKey: "periodEvening", icon: "🌙" },
+    { key: "night", labelKey: "periodNight", icon: "🛌" }
   ]
 };
 

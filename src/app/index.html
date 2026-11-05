@@ -22,8 +22,8 @@
     <div id="clockView" class="view">
       <section class="clock-page">
         <div class="clock-face-wrap">
-          <svg id="clockDial" class="clock-dial" viewBox="-30 -30 260 260" role="img" aria-label="">
-            <circle class="clock-bezel" cx="100" cy="100" r="126"></circle>
+          <svg id="clockDial" class="clock-dial" viewBox="-36 -36 272 272" role="img" aria-label="">
+            <circle class="clock-bezel" cx="100" cy="100" r="135"></circle>
             <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
             <g id="clockTicks" aria-hidden="true"></g>
             <g id="clockBadges" aria-hidden="true"></g>
@@ -78,19 +78,13 @@
     <div id="settingsView" class="settings-view" hidden>
       <div class="container">
         <div class="settings-column">
-          <!-- Card: 城市管理 Cities -->
+          <!-- Card: 編輯城市清單 Cities -->
           <section class="settings-card" id="cardCities">
-            <h2 class="section-title" data-i18n="customCitySection">城市清單管理</h2>
+            <div class="card-header">
+              <h2 class="section-title" data-i18n="currentCitiesTitle">編輯城市清單</h2>
+              <button id="resetButton" class="reset-btn" type="button" data-i18n="resetCitiesBtn">預設範例</button>
+            </div>
             <div class="current-cities-container">
-              <div class="control-group city-list-header-group">
-                <div class="control-label-wrap">
-                  <span class="control-label" data-i18n="currentCitiesTitle">編輯城市清單</span>
-                </div>
-                <div class="city-list-actions">
-                  <button id="clearAllButton" class="text-button" type="button" data-i18n="clearAllBtn">清除全部</button>
-                  <button id="resetButton" class="text-button" type="button" data-i18n="resetCitiesBtn">預設範例</button>
-                </div>
-              </div>
               <div id="currentCitiesList" class="current-cities-list"></div>
               <div class="current-city-card add-city-card" id="addCityRow">
                 <div class="add-card-placeholder" aria-hidden="true"></div>
@@ -103,11 +97,9 @@
 
           <!-- Card: 時段設定 Time Periods -->
           <section class="settings-card" id="cardPeriods">
-            <h2 class="section-title" data-i18n="periodCardTitle">時段設定</h2>
-
-            <div class="control-group period-timeline-header">
-              <div class="control-label-wrap">
-                <span class="control-label" data-i18n="periodTimelineLabel">時段設定</span>
+            <div class="card-header">
+              <div class="card-header-titles">
+                <h2 class="section-title" data-i18n="periodCardTitle">時段設定</h2>
                 <span class="control-desc" data-i18n="dragHandleDesc">拖曳手柄以調整時段範圍</span>
               </div>
               <button type="button" class="reset-btn" id="resetPeriodsButton" data-i18n="resetBtn">恢復預設</button>
@@ -121,9 +113,9 @@
             </div>
           </section>
 
-          <!-- Card: 外觀 Appearance -->
-          <section class="settings-card" id="cardAppearance">
-            <h2 class="section-title" data-i18n="appearanceCardTitle">外觀</h2>
+          <!-- Card: 其他 Other -->
+          <section class="settings-card" id="cardOther">
+            <h2 class="section-title" data-i18n="otherCardTitle">其他</h2>
             <div class="control-group">
               <div class="control-label-wrap">
                 <span class="control-label" data-i18n="langSection">語言</span>
@@ -148,10 +140,9 @@
                 <option value="dark" data-i18n="themeDark">深色</option>
               </select>
             </div>
-          </section>
 
-          <!-- Card: 贊助與資訊 -->
-          <section class="settings-card sponsor-card" id="cardSponsor">
+            <div class="divider"></div>
+
             <div class="control-group sponsor-control-group">
               <div class="control-label-wrap">
                 <span class="control-label" data-i18n="sponsorCardTitle">贊助支持</span>

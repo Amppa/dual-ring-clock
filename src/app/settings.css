@@ -67,6 +67,33 @@
   }
 }
 
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: var(--space-md);
+}
+
+.card-header .section-title {
+  margin-bottom: 0;
+}
+
+.card-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-header-titles .section-title {
+  margin-bottom: 0;
+}
+
+.card-header-titles .control-desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
 /* Control Row Pattern */
 .control-group {
   display: flex;
@@ -214,11 +241,6 @@
   margin-bottom: var(--space-md);
 }
 
-/* Sponsor Card in Settings Column */
-.settings-column .sponsor-card {
-  padding: var(--space-md);
-}
-
 .sponsor-control-group {
   display: flex;
   align-items: center;
@@ -267,7 +289,7 @@
   }
 }
 
-#cardAppearance {
+#cardOther {
   display: block;
 }
 
@@ -407,45 +429,7 @@
   background: var(--btn-bg-hover);
 }
 
-.city-list-header-group {
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.city-list-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.search-bar-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.search-bar-row input {
-  flex: 1;
-  min-width: 0;
-  min-height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--input-border);
-  border-radius: 7px;
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 12px;
-  outline: none;
-  transition: none;
-}
-
-.search-bar-row input:focus {
-  border-color: var(--input-focus-border);
-}
-
-.search-bar-row button,
-.city-list-actions button,
-.city-list-actions .text-button {
+.search-bar-row button {
   min-height: 30px;
   padding: 0 10px;
   border: 1px solid var(--input-border);
@@ -458,15 +442,13 @@
   transition: none;
 }
 
-.search-bar-row button:hover,
-.city-list-actions button:hover,
-.city-list-actions .text-button:hover {
+.search-bar-row button:hover {
   background: var(--btn-bg-hover);
   border-color: var(--input-focus-border);
 }
 
 .current-cities-container {
-  margin-bottom: var(--space-md);
+  margin-bottom: 0;
 }
 
 /* Scrollbar polish */
@@ -552,10 +534,6 @@
    Options Time Periods Stylesheet - TimeMapper
    Interactive 24-Hour Grid Timeline & Period Boundaries
    ========================================================================== */
-
-.period-timeline-header {
-  padding-bottom: 0;
-}
 
 /* ==========================================================================
    Interactive 24-Hour Grid Timeline (Matches Preview Timeline Style)

@@ -11,8 +11,10 @@ const DIAL_CENTER = 100;
 const HOUR_STEP_DEG = 15;
 const INNER_RADIUS = 88;
 const INNER_WIDTH = 20;
-const OUTER_RADIUS = 112;
-const OUTER_WIDTH = 20;
+const INNER_BADGE_RADIUS = 6.5;
+const OUTER_RADIUS = 117;
+const OUTER_WIDTH = 26;
+const OUTER_BADGE_RADIUS = 9;
 const MINUTE_TICK_OUTER_RADIUS = 74;
 const MINUTE_TICK_INNER_RADIUS = 71;
 const MINUTE_NUMERAL_RADIUS = 67;
@@ -74,12 +76,14 @@ function buildRingPaths(radius, width, offsetHours) {
   });
 }
 
-function buildRingScale(radius, width, offsetHours) {
+function buildRingScale(radius, width, offsetHours, badgeRadius = 6.5, isOuter = false) {
   const ticks = [];
   const badges = [];
   const numerals = [];
   const outerRadius = radius + width / 2;
   const innerRadius = radius - width / 2;
+  const badgeClass = isOuter ? "clock-numeral-badge clock-numeral-badge--outer" : "clock-numeral-badge";
+  const numeralClass = isOuter ? "clock-numeral clock-numeral--outer" : "clock-numeral";
 
   for (let hour = 0; hour < 24; hour += 1) {
     const angle = (hour + offsetHours) * HOUR_STEP_DEG;
@@ -92,10 +96,10 @@ function buildRingScale(radius, width, offsetHours) {
     const label = polarPoint(radius, angle);
     const labelText = hour === 0 ? 24 : hour;
     badges.push(
-      `<circle class="clock-numeral-badge" cx="${label.x}" cy="${label.y}" r="6.5"></circle>`
+      `<circle class="${badgeClass}" cx="${label.x}" cy="${label.y}" r="${badgeRadius}"></circle>`
     );
     numerals.push(
-      `<text class="clock-numeral" x="${label.x}" y="${label.y}" dy="0.35em" text-anchor="middle">${labelText}</text>`
+      `<text class="${numeralClass}" x="${label.x}" y="${label.y}" dy="0.35em" text-anchor="middle">${labelText}</text>`
     );
   }
 
@@ -169,11 +173,25 @@ export const ClockView = {
     const zone2 = city2?.zone || null;
     const offset1 = TimeUtils.getOffsetMinutes(now, zone1);
     const offset2 = zone2 ? TimeUtils.getOffsetMinutes(now, zone2) : null;
-    const configs = [{ radius: INNER_RADIUS, width: INNER_WIDTH, offset: 0 }];
+    const configs = [
+      {
+        radius: OUTER_RADIUS,
+        width: OUTER_WIDTH,
+        offset: 0,
+        badgeRadius: OUTER_BADGE_RADIUS,
+        isOuter: true
+      }
+    ];
 
     if (city2) {
       const deltaHours = (offset2 - offset1) / 60;
-      configs.push({ radius: OUTER_RADIUS, width: OUTER_WIDTH, offset: -deltaHours });
+      configs.push({
+        radius: INNER_RADIUS,
+        width: INNER_WIDTH,
+        offset: -deltaHours,
+        badgeRadius: INNER_BADGE_RADIUS,
+        isOuter: false
+      });
     }
 
     return { city1, city2, zone1, zone2, offset1, offset2, configs };
@@ -193,9 +211,9 @@ export const ClockView = {
     const badgeParts = [];
     const numeralParts = [];
 
-    configs.forEach(({ radius, width, offset }) => {
+    configs.forEach(({ radius, width, offset, badgeRadius, isOuter }) => {
       ringParts.push(...buildRingPaths(radius, width, offset));
-      const scale = buildRingScale(radius, width, offset);
+      const scale = buildRingScale(radius, width, offset, badgeRadius, isOuter);
       tickParts.push(...scale.ticks);
       badgeParts.push(...scale.badges);
       numeralParts.push(...scale.numerals);
@@ -223,8 +241,8 @@ export const ClockView = {
 
   _renderCityLabels() {
     const { city1, city2 } = this._current || {};
-    this._refs.innerCityLabel.textContent = city1 ? I18nUtils.getCityName(city1) : "";
-    this._refs.outerCityLabel.textContent = city2 ? I18nUtils.getCityName(city2) : "";
+    this._refs.outerCityLabel.textContent = city1 ? I18nUtils.getCityName(city1) : "";
+    this._refs.innerCityLabel.textContent = city2 ? I18nUtils.getCityName(city2) : "";
   },
 
   _renderHands(now) {

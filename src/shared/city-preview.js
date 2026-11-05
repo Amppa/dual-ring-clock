@@ -15,7 +15,6 @@ export const CityPreview = {
     const q = (sel) => root.querySelector(sel);
     return {
       currentCitiesList: q("#currentCitiesList"),
-      clearAllButton: q("#clearAllButton"),
       resetButton: q("#resetButton"),
     };
   },
@@ -212,20 +211,10 @@ export const CityPreview = {
   },
 
   /**
-   * Wire clear / reset buttons.
+   * Wire reset button.
    * `onReset` is called after the selection is reset.
    */
   wireResetButtons(refs, onReset) {
-    if (refs.clearAllButton) {
-      refs.clearAllButton.addEventListener("click", () => {
-        State.selectedIds = [];
-        State.customCities = [];
-        State.saveSelection();
-        State.saveCustomCities();
-        if (onReset) onReset();
-      });
-    }
-
     if (refs.resetButton) {
       refs.resetButton.addEventListener("click", () => {
         State.selectedIds = [...CONFIG.defaultSelection].slice(0, State.cityLimit);

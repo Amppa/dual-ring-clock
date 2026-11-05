@@ -75,6 +75,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.clock-numeral--outer {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
 .clock-minute-tick {
   stroke: var(--clock-minute-track);
   stroke-width: 0.5;
