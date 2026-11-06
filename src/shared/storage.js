@@ -28,7 +28,3 @@ export const Storage = {
     }
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.Storage = Storage;
-}

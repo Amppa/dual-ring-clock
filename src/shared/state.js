@@ -18,7 +18,7 @@ function clampMapPercent(value) {
  * Whitelist normalization for custom cities (schema: id, name, zone, x, y, lng, lat).
  * Returns null for entries that cannot be repaired.
  */
-export function sanitizeCustomCity(city) {
+function sanitizeCustomCity(city) {
   if (!city || typeof city !== "object") return null;
   if (typeof city.id !== "string" || !city.id) return null;
   if (typeof city.name !== "string" || !city.name.trim()) return null;
@@ -249,7 +249,3 @@ export const State = {
     return true;
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.State = State;
-}

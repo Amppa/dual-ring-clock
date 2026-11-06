@@ -447,7 +447,3 @@ export const TimelinePreview = {
     });
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.TimelinePreview = TimelinePreview;
-}

@@ -311,7 +311,3 @@ export const ClockView = {
     return Array.from(this._refs.cityList.children).filter((el) => el.classList.contains("clock-city-row"));
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.ClockView = ClockView;
-}

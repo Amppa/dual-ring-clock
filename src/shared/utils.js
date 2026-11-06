@@ -3,6 +3,7 @@
  */
 
 import { PROJECTION, CONFIG } from "./config.js";
+import { State } from "./state.js";
 import { i18nTranslations, i18nCityNames } from "./i18n.js";
 
 export const MathUtils = {
@@ -310,7 +311,7 @@ export const PeriodUtils = {
     return set[idx] || set[set.length - 1];
   },
   getHourStyle(hour) {
-    const timePeriods = (typeof State !== "undefined" && State.timePeriods) || CONFIG.defaultTimePeriods;
+    const timePeriods = State.timePeriods || CONFIG.defaultTimePeriods;
     let idx = timePeriods.findIndex((p) => {
       if (p.start <= p.end) {
         return hour >= p.start && hour <= p.end;
@@ -365,22 +366,22 @@ export const MapUtils = {
    * mapped back to the uncalibrated base map.
    */
   calibrateX(x) {
-    const settings = (typeof State !== "undefined" && State.mapSettings) || CONFIG.defaultMapSettings;
+    const settings = State.mapSettings || CONFIG.defaultMapSettings;
     return 50 + (x - 50) * settings.widthScale + settings.lngOffset;
   },
 
   calibrateY(y) {
-    const settings = (typeof State !== "undefined" && State.mapSettings) || CONFIG.defaultMapSettings;
+    const settings = State.mapSettings || CONFIG.defaultMapSettings;
     return 50 + (y - 50) * settings.heightScale - settings.latOffset;
   },
 
   uncalibrateX(screenX) {
-    const settings = (typeof State !== "undefined" && State.mapSettings) || CONFIG.defaultMapSettings;
+    const settings = State.mapSettings || CONFIG.defaultMapSettings;
     return 50 + (screenX - 50 - settings.lngOffset) / settings.widthScale;
   },
 
   uncalibrateY(screenY) {
-    const settings = (typeof State !== "undefined" && State.mapSettings) || CONFIG.defaultMapSettings;
+    const settings = State.mapSettings || CONFIG.defaultMapSettings;
     return 50 + (screenY - 50 + settings.latOffset) / settings.heightScale;
   },
 
@@ -418,7 +419,7 @@ export const TimelineUtils = {
     const now = new Date();
     let hours, minutes;
 
-    if (typeof State !== "undefined" && State.selectedIds.length > 0) {
+    if (State.selectedIds.length > 0) {
       const firstCity = State.findCity(State.selectedIds[0]);
       if (firstCity) {
         const zone = TimeUtils.resolveZone(firstCity.zone);
@@ -460,13 +461,3 @@ export const TimelineUtils = {
     return MathUtils.clamp(snappedMinutes / (24 * 60), 0, 1);
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.MathUtils = MathUtils;
-  globalThis.EscapeUtils = EscapeUtils;
-  globalThis.TimeUtils = TimeUtils;
-  globalThis.I18nUtils = I18nUtils;
-  globalThis.PeriodUtils = PeriodUtils;
-  globalThis.MapUtils = MapUtils;
-  globalThis.TimelineUtils = TimelineUtils;
-}

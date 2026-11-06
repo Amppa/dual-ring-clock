@@ -61,8 +61,3 @@ export const CONFIG = {
     }
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.PROJECTION = PROJECTION;
-  globalThis.CONFIG = CONFIG;
-}

@@ -10,8 +10,6 @@ const NIGHT_TAN_DEC = Math.tan(NIGHT_DECLINATION_DEG * Math.PI / 180);
 const NIGHT_Y_SHIFT = 10;
 
 export const MapPreview = {
-  ASSET_PATH: "../../assets/world-map.jpg",
-
   /** "Now" shifted by `offsetHours`; every sun-driven layer shares this. */
   shiftedNow(offsetHours) {
     return new Date(Date.now() + offsetHours * 60 * 60 * 1000);
@@ -554,7 +552,3 @@ export const MapPreview = {
     });
   },
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.MapPreview = MapPreview;
-}

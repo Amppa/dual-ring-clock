@@ -68,7 +68,3 @@ export const Renderer = {
   }
 };
 
-if (typeof globalThis !== "undefined") {
-  globalThis.Renderer = Renderer;
-}
-

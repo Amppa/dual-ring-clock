@@ -79,11 +79,7 @@ export const SettingsController = {
     const now = new Date();
     const zoneDetails = allZones.map((zone) => {
       const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
-      const sign = offsetMins >= 0 ? "+" : "-";
-      const absMins = Math.abs(offsetMins);
-      const hours = Math.floor(absMins / 60);
-      const mins = absMins % 60;
-      const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
+      const offsetStr = TimeUtils.utcOffsetText(now, zone);
       const cityName = zoneToCity.has(zone)
         ? I18nUtils.getCityName(zoneToCity.get(zone))
         : zone.split("/").pop().replace(/_/g, " ");

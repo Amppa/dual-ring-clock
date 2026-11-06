@@ -313,7 +313,3 @@ export const i18nCityNames = {
   }
 };
 
-if (typeof globalThis !== "undefined") {
-  globalThis.i18nTranslations = i18nTranslations;
-  globalThis.i18nCityNames = i18nCityNames;
-}

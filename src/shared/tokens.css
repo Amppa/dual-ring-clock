@@ -35,10 +35,10 @@
   /* ------------------------------------------------------------------------
      Timeline & Cell Tokens
      ------------------------------------------------------------------------ */
-  --timeline-cell-font-size: 11px;
+  --timeline-cell-font-size: 9px;
   --timeline-cell-font-weight: 500;
   --timeline-cell-border: 1px solid rgba(255, 255, 255, 0.28);
-  --timeline-label-width: 120px;
+  --timeline-label-width: 76px;
 
   /* ------------------------------------------------------------------------
      3. Brand Accent
@@ -67,27 +67,6 @@
   --scroll-thumb-hover: #525263;
 
   --timezone-hover-bg: rgba(56, 189, 248, 0.18);
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg-primary: #121214;
-  --bg-card: #242429;
-  --text-primary: #f0f0f2;
-  --text-secondary: #909099;
-  --divider: rgba(255, 255, 255, 0.08);
-
-  --btn-bg-hover: rgba(255, 255, 255, 0.12);
-
-  --scroll-thumb: #3a3a46;
-  --scroll-thumb-hover: #525263;
-
-  --timezone-hover-bg: rgba(56, 189, 248, 0.18);
-  --clock-ring-day: #EEB422;
-  --clock-ring-mid: #B8860B;
-  --clock-ring-evening: #38302E;
-  --clock-badge-bg: #000000;
-  --clock-badge-ink: #ffffff;
 }
 
 :root[data-theme="light"] {
