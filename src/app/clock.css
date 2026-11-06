@@ -89,8 +89,19 @@
 }
 
 .clock-hand {
-  filter: drop-shadow(-1.5px 1.5px 2px rgba(0, 0, 0, 0.3));
   pointer-events: none;
+}
+
+/* Filters sit on the un-rotated wrapper layers so the light stays fixed at
+   the lower right; lengths are SVG user units (1 unit ≈ 1.7 screen px).
+   The minute hand floats higher above the hour hand, so its shadow sits
+   further away: larger offset and softer blur. */
+.clock-hand-layer--hour {
+  filter: drop-shadow(1.5px 1.5px 2px rgba(0, 0, 0, 0.55));
+}
+
+.clock-hand-layer--minute {
+  filter: drop-shadow(2.5px 3.5px 4px rgba(0, 0, 0, 0.55));
 }
 
 .clock-hand--hour {

@@ -31,8 +31,12 @@
             <text id="clockInnerCityLabel" class="clock-ring-city-label" x="100" y="60" dy="0.35em" text-anchor="middle"></text>
             <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="100" y="-56" dy="0.35em" text-anchor="middle"></text>
             <g id="clockScrubLines" class="clock-scrub-lines-layer"></g>
-            <path id="clockHourHand" class="clock-hand clock-hand--hour" d="M 97.5 100 L 97.5 38.330 L 100 34 L 102.5 38.330 L 102.5 100 Z"></path>
-            <path id="clockMinuteHand" class="clock-hand clock-hand--minute" d="M 98.5 100 L 98.5 30.598 L 100 28 L 101.5 30.598 L 101.5 100 Z"></path>
+            <g class="clock-hand-layer clock-hand-layer--hour">
+              <path id="clockHourHand" class="clock-hand clock-hand--hour" d="M 97.5 100 L 97.5 38.330 L 100 34 L 102.5 38.330 L 102.5 100 Z"></path>
+            </g>
+            <g class="clock-hand-layer clock-hand-layer--minute">
+              <path id="clockMinuteHand" class="clock-hand clock-hand--minute" d="M 98.5 100 L 98.5 30.598 L 100 28 L 101.5 30.598 L 101.5 100 Z"></path>
+            </g>
             <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
             <g id="clockScrubIntervals" class="clock-scrub-intervals-layer"></g>
             <g id="clockScrubBadges" class="clock-scrub-badges-layer"></g>
