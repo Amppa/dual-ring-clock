@@ -48,15 +48,6 @@
   stroke: var(--clock-ring-evening);
 }
 
-.clock-tick {
-  stroke: var(--clock-tick);
-  stroke-width: 1;
-}
-
-.clock-numeral-badge {
-  fill: var(--clock-badge-bg);
-}
-
 .clock-ring-city-label {
   fill: var(--text-primary);
   opacity: 0.5;
@@ -68,11 +59,15 @@
   font-size: 20px;
 }
 
-.clock-numeral {
+.clock-numerals {
+  filter: drop-shadow(0 0 1px var(--clock-badge-bg));
   fill: var(--clock-badge-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-numeral--inner {
   font-size: 7.5px;
   font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 .clock-numeral--outer {

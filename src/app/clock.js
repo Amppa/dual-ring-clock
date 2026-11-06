@@ -11,10 +11,8 @@ const DIAL_CENTER = 100;
 const HOUR_STEP_DEG = 15;
 const INNER_RADIUS = 91;
 const INNER_WIDTH = 18;
-const INNER_BADGE_RADIUS = 6;
 const OUTER_RADIUS = 117;
 const OUTER_WIDTH = 26;
-const OUTER_BADGE_RADIUS = 9;
 const MINUTE_TICK_OUTER_RADIUS = 74;
 const MINUTE_TICK_INNER_RADIUS = 71;
 const MINUTE_NUMERAL_RADIUS = 67;
@@ -76,34 +74,20 @@ function buildRingPaths(radius, width, offsetHours) {
   });
 }
 
-function buildRingScale(radius, width, offsetHours, badgeRadius = 6.5, isOuter = false) {
-  const ticks = [];
-  const badges = [];
+function buildRingScale(radius, offsetHours, isOuter = false) {
   const numerals = [];
-  const outerRadius = radius + width / 2;
-  const innerRadius = radius - width / 2;
-  const badgeClass = isOuter ? "clock-numeral-badge clock-numeral-badge--outer" : "clock-numeral-badge";
-  const numeralClass = isOuter ? "clock-numeral clock-numeral--outer" : "clock-numeral";
+  const numeralClass = isOuter ? "clock-numeral clock-numeral--outer" : "clock-numeral clock-numeral--inner";
 
   for (let hour = 0; hour < 24; hour += 1) {
     const angle = (hour + offsetHours) * HOUR_STEP_DEG;
-    const outer = polarPoint(outerRadius, angle);
-    const inner = polarPoint(innerRadius, angle);
-    ticks.push(
-      `<line class="clock-tick" x1="${outer.x}" y1="${outer.y}" x2="${inner.x}" y2="${inner.y}"></line>`
-    );
-
     const label = polarPoint(radius, angle);
     const labelText = hour === 0 ? 24 : hour;
-    badges.push(
-      `<circle class="${badgeClass}" cx="${label.x}" cy="${label.y}" r="${badgeRadius}"></circle>`
-    );
     numerals.push(
       `<text class="${numeralClass}" x="${label.x}" y="${label.y}" dy="0.35em" text-anchor="middle">${labelText}</text>`
     );
   }
 
-  return { ticks, badges, numerals };
+  return { numerals };
 }
 
 /** Inner-ring minute scale: fixed geometry, so it is painted once instead of per rebuild. */
@@ -178,7 +162,6 @@ export const ClockView = {
         radius: OUTER_RADIUS,
         width: OUTER_WIDTH,
         offset: 0,
-        badgeRadius: OUTER_BADGE_RADIUS,
         isOuter: true
       }
     ];
@@ -189,7 +172,6 @@ export const ClockView = {
         radius: INNER_RADIUS,
         width: INNER_WIDTH,
         offset: -deltaHours,
-        badgeRadius: INNER_BADGE_RADIUS,
         isOuter: false
       });
     }
@@ -207,21 +189,17 @@ export const ClockView = {
     this._ringSignature = signature;
 
     const ringParts = [];
-    const tickParts = [];
-    const badgeParts = [];
     const numeralParts = [];
 
-    configs.forEach(({ radius, width, offset, badgeRadius, isOuter }) => {
+    configs.forEach(({ radius, width, offset, isOuter }) => {
       ringParts.push(...buildRingPaths(radius, width, offset));
-      const scale = buildRingScale(radius, width, offset, badgeRadius, isOuter);
-      tickParts.push(...scale.ticks);
-      badgeParts.push(...scale.badges);
+      const scale = buildRingScale(radius, offset, isOuter);
       numeralParts.push(...scale.numerals);
     });
 
     this._refs.ring.innerHTML = ringParts.join("");
-    this._refs.ticks.innerHTML = tickParts.join("");
-    this._refs.badges.innerHTML = badgeParts.join("");
+    if (this._refs.ticks) this._refs.ticks.innerHTML = "";
+    if (this._refs.badges) this._refs.badges.innerHTML = "";
     this._refs.numerals.innerHTML = numeralParts.join("");
   },
 
