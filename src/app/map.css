@@ -135,10 +135,6 @@
   transition: transform 0.15s ease;
 }
 
-.city-pin::after {
-  display: none;
-}
-
 .city-pin.is-night:not(.is-selected) {
   background: var(--night-pin);
 }

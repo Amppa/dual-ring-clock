@@ -65,12 +65,6 @@
   color: var(--text-primary);
 }
 
-body.keyboard-open .bottom-bar {
-  transform: translateY(140%);
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* The pill's slide communicates the active view; keep it even when the OS asks
    for reduced motion. The rest of the UI still switches instantly. */
 @media (prefers-reduced-motion: reduce) {

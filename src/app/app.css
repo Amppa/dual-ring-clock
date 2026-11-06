@@ -89,10 +89,6 @@ body {
   min-width: 0;
 }
 
-.app-mobile .dst-text {
-  display: inline;
-}
-
 .app-mobile .hours {
   min-height: 44px;
 }
