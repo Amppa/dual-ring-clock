@@ -1,6 +1,6 @@
 # DEVELOPMENT.md — 開發流程與操作手冊 (Engineering Workflows & Runbook)
 
-本專案為獨立之 **TimeMapper Android App**（基於 Capacitor + 原生 ES Module SPA 架構）。
+本專案為獨立之 **DualRing Clock Android App**（基於 Capacitor + 原生 ES Module SPA 架構）。
 
 ---
 
@@ -56,7 +56,7 @@ npm run android:deploy
 1. **打包 Web 資產**：執行 `tools/build-android-web.mjs`，將 `src/` 與 `assets/` 同步至 `android-web/`。
 2. **同步 Capacitor**：執行 `npx cap sync android`，將 Web 資產寫入原生 Android 資產目錄。
 3. **編譯 Debug APK**：自動偵測 Android Studio JBR，透過 Gradle 編譯出 `app-debug.apk`。
-4. **ADB 安裝與啟動**：透過 ADB 覆蓋安裝至已連接的手機並自動開啟 TimeMapper。
+4. **ADB 安裝與啟動**：透過 ADB 覆蓋安裝至已連接的手機並自動開啟 DualRing Clock。
 
 #### 其他實用指令：
 ```bash

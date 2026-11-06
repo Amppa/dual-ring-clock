@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    TimeMapper Android Build & Deploy Script for PowerShell.
+    DualRing Clock Android Build & Deploy Script for PowerShell.
 .DESCRIPTION
     Wraps node tools/deploy-apk.mjs with flags for build, install, or full deployment.
 .EXAMPLE

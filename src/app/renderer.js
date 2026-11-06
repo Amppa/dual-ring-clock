@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Mobile App UI Renderer
+ * DualRing Clock - Mobile App UI Renderer
  */
 
 import { State } from "../shared/state.js";

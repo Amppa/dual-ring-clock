@@ -45,5 +45,7 @@
     }
   });
 
-  globalThis.TimeMapperTheme = { apply, resolve };
+  const themeApi = { apply, resolve };
+  globalThis.AppTheme = themeApi;
+  globalThis.TimeMapperTheme = themeApi;
 })();

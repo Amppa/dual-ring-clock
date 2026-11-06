@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Shared City List Preview Module
+ * DualRing Clock - Shared City List Preview Module
  */
 
 import { State } from "./state.js";

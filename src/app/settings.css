@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Mobile Settings Stylesheet - TimeMapper
+   Mobile Settings Stylesheet - DualRing Clock
    ========================================================================== */
 /* ==========================================================================
-   Options Layout Stylesheet - TimeMapper
+   Options Layout Stylesheet - DualRing Clock
    Consumes design tokens from src/shared/tokens.css
    Style strictly mirrors ../_chrome-ext-template
    ========================================================================== */
@@ -274,7 +274,7 @@
 
 
 /* ==========================================================================
-   Options Cities Stylesheet - TimeMapper
+   Options Cities Stylesheet - DualRing Clock
    City Management, Drag & Drop Reordering, Search & Selection
    ========================================================================== */
 
@@ -482,7 +482,7 @@
 }
 
 /* ==========================================================================
-   Options Time Periods Stylesheet - TimeMapper
+   Options Time Periods Stylesheet - DualRing Clock
    Interactive 24-Hour Grid Timeline & Period Boundaries
    ========================================================================== */
 

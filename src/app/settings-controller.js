@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Mobile App Settings Controller
+ * DualRing Clock - Mobile App Settings Controller
  */
 
 import { CONFIG } from "../shared/config.js";
@@ -11,7 +11,7 @@ import {
   RegionUtils,
   TimeUtils
 } from "../shared/utils.js";
-import { TimeMapperVersion } from "../shared/version.js";
+import { AppVersion } from "../shared/version.js";
 import { CityPreview } from "../shared/city-preview.js";
 import { Renderer } from "./renderer.js";
 
@@ -27,7 +27,7 @@ export const SettingsController = {
 
   init() {
     const versionLabel = document.getElementById("versionLabel");
-    TimeMapperVersion.render(versionLabel);
+    AppVersion.render(versionLabel);
 
     const citiesMount = document.getElementById("cardCities");
     this.cityRefs = citiesMount ? CityPreview.collectRefs(citiesMount) : null;
@@ -188,8 +188,9 @@ export const SettingsController = {
     const themeSelect = document.getElementById("mobileThemeSelect");
     if (themeSelect) {
       themeSelect.addEventListener("change", () => {
-        if (globalThis.TimeMapperTheme) {
-          globalThis.TimeMapperTheme.apply(themeSelect.value);
+        const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+        if (themeObj) {
+          themeObj.apply(themeSelect.value);
         }
       });
     }

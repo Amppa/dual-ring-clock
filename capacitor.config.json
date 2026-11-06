@@ -1,6 +1,6 @@
 {
-  "appId": "com.amppa.timemapper",
-  "appName": "TimeMapper",
+  "appId": "com.amppa.dualringclock",
+  "appName": "DualRing Clock",
   "webDir": "android-web",
   "server": {
     "androidScheme": "https"

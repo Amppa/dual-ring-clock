@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Pointer Drag & Reorder Controller
+ * DualRing Clock - Pointer Drag & Reorder Controller
  *
  * Provides smooth pointer-based vertical reordering with real-time displacement,
  * sibling sliding animations, edge auto-scroll, and drop transitions.

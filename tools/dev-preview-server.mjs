@@ -27,7 +27,7 @@ const harness = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TimeMapper Android preview</title>
+<title>DualRing Clock preview</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -94,7 +94,7 @@ const harness = `<!doctype html>
 </head>
 <body>
 <aside>
-  <div class="brand">TimeMapper Android</div>
+  <div class="brand">DualRing Clock</div>
   <div class="group" id="devices">
     <span>Device</span>
     <select id="device" aria-label="Device preset">
@@ -128,9 +128,10 @@ const harness = `<!doctype html>
   frame.addEventListener("load", syncTheme);
 
   darkToggle.addEventListener("click", () => {
-    if (!frame.contentDocument || !frame.contentWindow.TimeMapperTheme) return;
+    const themeApi = frame.contentWindow?.AppTheme || frame.contentWindow?.TimeMapperTheme;
+    if (!frame.contentDocument || !themeApi) return;
     const next = isDark() ? "light" : "dark";
-    frame.contentWindow.TimeMapperTheme.apply(next);
+    themeApi.apply(next);
     darkToggle.setAttribute("aria-pressed", String(next === "dark"));
   });
 

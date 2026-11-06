@@ -27,9 +27,10 @@ function syncNavIndicator() {
 }
 
 function applyTheme() {
-  if (globalThis.TimeMapperTheme) {
+  const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+  if (themeObj) {
     document.documentElement.dataset.theme =
-      TimeMapperTheme.resolve(localStorage.getItem("theme") || "auto");
+      themeObj.resolve(localStorage.getItem("theme") || "auto");
   }
 }
 

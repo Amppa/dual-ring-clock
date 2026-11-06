@@ -1,5 +1,5 @@
 /**
- * TimeMapper - 24-hour clock view
+ * DualRing Clock - 24-hour clock view
  */
 
 import { CONFIG } from "../shared/config.js";

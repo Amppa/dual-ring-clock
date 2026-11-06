@@ -9,7 +9,7 @@ const isWin = process.platform === "win32";
 
 const apkRelPath = path.join("android", "app", "build", "outputs", "apk", "debug", "app-debug.apk");
 const apkFullPath = path.join(root, apkRelPath);
-const appId = "com.amppa.timemapper";
+const appId = "com.amppa.dualringclock";
 
 function run(cmd, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -98,7 +98,7 @@ async function main() {
   const installOnly = args.includes("--install-only");
 
   console.log("==================================================");
-  console.log("       TimeMapper Android Build & Deploy Tool     ");
+  console.log("    DualRing Clock Android Build & Deploy Tool    ");
   console.log("==================================================");
 
   if (!installOnly) {
@@ -154,7 +154,7 @@ async function main() {
     console.log("   Installing APK (re-install & allow downgrade)...");
     await run(adbPath, ["-s", device.id, "install", "-r", "-d", apkFullPath]);
 
-    console.log("   Launching TimeMapper...");
+    console.log("   Launching DualRing Clock...");
     await run(adbPath, ["-s", device.id, "shell", "am", "start", "-n", `${appId}/.MainActivity`]);
   }
 

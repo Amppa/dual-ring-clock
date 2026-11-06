@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Utilities Module
+ * DualRing Clock - Utilities Module
  */
 
 import { PROJECTION, CONFIG } from "./config.js";
@@ -328,8 +328,9 @@ export const PeriodUtils = {
   /** Active theme, following theme.js; falls back to light. */
   currentTheme() {
     try {
-      if (globalThis.TimeMapperTheme) {
-        return globalThis.TimeMapperTheme.resolve(localStorage.getItem("theme") || "auto");
+      const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+      if (themeObj) {
+        return themeObj.resolve(localStorage.getItem("theme") || "auto");
       }
     } catch { }
     return document.documentElement.dataset.theme === "dark" ? "dark" : "light";

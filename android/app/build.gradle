@@ -7,10 +7,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.amppa.timemapper"
+    namespace = "com.amppa.dualringclock"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.amppa.timemapper"
+        applicationId "com.amppa.dualringclock"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 205

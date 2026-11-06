@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Application State Management Module
+ * DualRing Clock - Application State Management Module
  */
 
 import { CONFIG } from "./config.js";

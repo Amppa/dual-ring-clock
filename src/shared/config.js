@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Map Projection Constants
+ * DualRing Clock - Map Projection Constants
  *
  * Linear conversion from geographic coordinates to base map percentages (0-100):
  *   x = lngX * longitude + lngXOffset
@@ -13,7 +13,7 @@ export const PROJECTION = {
 };
 
 /**
- * TimeMapper - Configuration Module
+ * DualRing Clock - Configuration Module
  */
 export const CONFIG = {
   defaultSelection: ["local", "tokyo", "new-york", "los-angeles"],

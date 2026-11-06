@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Storage Module
+ * DualRing Clock - Storage Module
  *
  * Lightweight, direct localStorage wrapper for Android / WebView.
  */
@@ -24,7 +24,7 @@ export const Storage = {
       const str = typeof value === "string" ? value : JSON.stringify(value);
       localStorage.setItem(key, str);
     } catch (err) {
-      console.warn("[TimeMapper] localStorage write failed for", key, err);
+      console.warn("[DualRing Clock] localStorage write failed for", key, err);
     }
   }
 };

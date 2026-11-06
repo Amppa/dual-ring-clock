@@ -1,5 +1,5 @@
 /**
- * TimeMapper - Shared Minimap Rendering Module
+ * DualRing Clock - Shared Minimap Rendering Module
  */
 
 import { State } from "./state.js";
