@@ -87,6 +87,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.clock-hand {
+  filter: drop-shadow(-1.5px 1.5px 2px rgba(0, 0, 0, 0.3));
+}
+
 .clock-hand--hour {
   fill: var(--text-primary);
 }
@@ -135,6 +139,8 @@
   position: relative;
   z-index: 2;
   background: var(--bg-card);
+  --drag-scale: 1.03;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 12px 28px rgba(0, 0, 0, 0.35);
 }
 
 .clock-city-meta {

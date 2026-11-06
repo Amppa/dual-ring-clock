@@ -88,7 +88,7 @@ export const DragReorderController = {
 
   _applyDragOffset(drag) {
     const deltaY = drag.lastY - drag.startY;
-    drag.item.style.transform = `translateY(${deltaY}px)`;
+    drag.item.style.transform = `translateY(${deltaY}px) scale(var(--drag-scale, 1))`;
 
     const offsetSlots = Math.round(deltaY / drag.slotHeight);
     const targetIndex = Math.max(0, Math.min(drag.items.length - 1, drag.startIndex + offsetSlots));
@@ -187,7 +187,7 @@ export const DragReorderController = {
 
     const finalShift = (targetIndex - startIndex) * slotHeight;
     item.style.transition = "transform 0.15s cubic-bezier(0.2, 0, 0, 1)";
-    item.style.transform = `translateY(${finalShift}px)`;
+    item.style.transform = `translateY(${finalShift}px) scale(var(--drag-scale, 1))`;
 
     setTimeout(() => {
       this._cleanupStyles(container, items);
