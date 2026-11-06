@@ -71,36 +71,18 @@ export const SettingsController = {
       if (!zoneToCity.has(city.zone)) zoneToCity.set(city.zone, city);
     });
 
-    const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
-      ? Intl.supportedValuesOf("timeZone")
-      : Array.from(zoneToCity.keys());
-
-    const allZones = Array.from(new Set([...zoneToCity.keys(), ...supportedZones]));
-    const now = new Date();
-    const zoneDetails = allZones.map((zone) => {
-      const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
-      const offsetStr = TimeUtils.utcOffsetText(now, zone);
-      const cityName = zoneToCity.has(zone)
-        ? I18nUtils.getCityName(zoneToCity.get(zone))
-        : zone.split("/").pop().replace(/_/g, " ");
-      return { zone, offsetMins, label: `${zone} (${offsetStr})`, cityName };
-    });
-
-    zoneDetails.sort((a, b) => {
-      if (a.offsetMins !== b.offsetMins) return a.offsetMins - b.offsetMins;
-      return a.zone.localeCompare(b.zone);
-    });
-
+    const sortedZones = TimeUtils.getSortedZones();
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = I18nUtils.getTranslation("cityZonePlaceholder") || "選擇城市時區";
     mobileAddCityZone.appendChild(placeholder);
 
-    zoneDetails.forEach((detail) => {
+    sortedZones.forEach((detail) => {
       const option = document.createElement("option");
       option.value = detail.zone;
       option.textContent = detail.label;
-      option.dataset.cityName = detail.cityName;
+      const city = zoneToCity.get(detail.zone);
+      option.dataset.cityName = city ? I18nUtils.getCityName(city) : detail.zone.split("/").pop().replace(/_/g, " ");
       mobileAddCityZone.appendChild(option);
     });
 

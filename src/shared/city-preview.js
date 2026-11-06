@@ -42,6 +42,15 @@ export const CityPreview = {
     if (DragReorderController.isDragging()) CityPreview.clearCardDragState(refs);
     refs.currentCitiesList.innerHTML = "";
 
+    const sortedZones = TimeUtils.getSortedZones();
+    const zoneOptionsFrag = document.createDocumentFragment();
+    sortedZones.forEach((detail) => {
+      const opt = document.createElement("option");
+      opt.value = detail.zone;
+      opt.textContent = detail.label;
+      zoneOptionsFrag.appendChild(opt);
+    });
+
     State.selectedIds.forEach((id) => {
       const city = State.findCity(id);
       if (!city) return;
@@ -66,36 +75,7 @@ export const CityPreview = {
       const removeBtn = card.querySelector(".remove-city-card-btn");
       const dragHandle = card.querySelector(".drag-handle");
 
-      // Timezone options: browser-supported zones + zones of selected cities,
-      // sorted by UTC offset.
-      const supportedZones = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
-        ? Intl.supportedValuesOf("timeZone")
-        : ["UTC", "Asia/Taipei", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Singapore", "Europe/London", "America/New_York", "America/Los_Angeles"];
-
-      const uniqueZonesSet = new Set(supportedZones);
-      State.selectedIds.forEach((sid) => {
-        const c = State.findCity(sid);
-        if (c && c.zone) uniqueZonesSet.add(c.zone);
-      });
-
-      const now = new Date();
-      const zoneDetails = Array.from(uniqueZonesSet).map((zone) => {
-        const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
-        const offsetStr = TimeUtils.utcOffsetText(now, zone);
-        return { zone, offsetMins, label: `${zone} (${offsetStr})` };
-      });
-
-      zoneDetails.sort((a, b) => {
-        if (a.offsetMins !== b.offsetMins) return a.offsetMins - b.offsetMins;
-        return a.zone.localeCompare(b.zone);
-      });
-
-      zoneDetails.forEach((detail) => {
-        const opt = document.createElement("option");
-        opt.value = detail.zone;
-        opt.textContent = detail.label;
-        zoneSelect.appendChild(opt);
-      });
+      zoneSelect.appendChild(zoneOptionsFrag.cloneNode(true));
       zoneSelect.value = currentZone;
 
       dragHandle.addEventListener("pointerdown", (e) => {

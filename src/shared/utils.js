@@ -199,6 +199,36 @@ export const TimeUtils = {
     } catch {
       return 0;
     }
+  },
+
+  _cachedSortedZones: null,
+  _cachedZonesMinute: null,
+
+  getSortedZones(now = new Date()) {
+    const minuteBucket = Math.floor(now.getTime() / 60000);
+    if (this._cachedSortedZones && this._cachedZonesMinute === minuteBucket) {
+      return this._cachedSortedZones;
+    }
+
+    const supported = (typeof Intl !== "undefined" && typeof Intl.supportedValuesOf === "function")
+      ? (this._cachedSupportedZones || (this._cachedSupportedZones = Intl.supportedValuesOf("timeZone")))
+      : ["UTC", "Asia/Taipei", "Asia/Hong_Kong", "Asia/Tokyo", "Asia/Singapore", "Europe/London", "America/New_York", "America/Los_Angeles"];
+
+    const allZones = Array.from(new Set(supported));
+    const list = allZones.map((zone) => {
+      const offsetMins = this.getOffsetMinutes(now, zone);
+      const offsetStr = this.utcOffsetText(now, zone);
+      return { zone, offsetMins, label: `${zone} (${offsetStr})` };
+    });
+
+    list.sort((a, b) => {
+      if (a.offsetMins !== b.offsetMins) return a.offsetMins - b.offsetMins;
+      return a.zone.localeCompare(b.zone);
+    });
+
+    this._cachedSortedZones = list;
+    this._cachedZonesMinute = minuteBucket;
+    return list;
   }
 };
 
