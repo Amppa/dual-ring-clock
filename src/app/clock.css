@@ -182,7 +182,7 @@
 
 .clock-city-date {
   font-size: clamp(1.9rem, 9vw, 2.75rem);
-  font-weight: 100;
+  font-weight: 300;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
