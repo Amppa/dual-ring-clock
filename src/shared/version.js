@@ -1,4 +1,4 @@
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "1.0.0";
 
 export const AppVersion = {
   render(el) {
