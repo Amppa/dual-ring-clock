@@ -110,7 +110,7 @@ export const TimeUtils = {
     }
   },
 
-  formatTime(date, zone, options = {}) {
+  formatTime(date, zone) {
     try {
       const resolved = this.resolveZone(zone);
       const locale = I18nUtils.getLocale() || "en-US";
@@ -118,8 +118,7 @@ export const TimeUtils = {
         timeZone: resolved,
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false,
-        weekday: options.weekday ? "short" : undefined
+        hour12: false
       });
       return formatter.format(date);
     } catch {
@@ -199,38 +198,14 @@ export const TimeUtils = {
     } catch {
       return 0;
     }
-  },
-
-  isCurrentlyDST(zone) {
-    try {
-      const resolved = this.resolveZone(zone);
-      const currentYear = new Date().getFullYear();
-
-      const jan = new Date(Date.UTC(currentYear, 0, 1));
-      const jul = new Date(Date.UTC(currentYear, 6, 1));
-
-      const janOffset = this.getOffsetMinutes(jan, resolved);
-      const julOffset = this.getOffsetMinutes(jul, resolved);
-
-      if (janOffset === julOffset) {
-        return false;
-      }
-
-      const maxOffset = Math.max(janOffset, julOffset);
-      const curOffset = this.getOffsetMinutes(new Date(), resolved);
-
-      return curOffset === maxOffset;
-    } catch {
-      return false;
-    }
   }
 };
 
 export const I18nUtils = {
   /**
-   * Active UI language. `State.currentLang`'s setter is the only writer
-   * (via setLang), so this module never has to reach for the State singleton
-   * to resolve a string.
+   * Active UI language. `setLang` is called by State whenever the resolved
+   * language changes, so this module never has to reach for the State
+   * singleton to resolve a string.
    */
   _lang: "zh",
 
@@ -328,11 +303,10 @@ export const PeriodUtils = {
     } catch { }
     return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   },
-  /** Fixed palette entry for a period index under the active theme. */
+  /** Fixed palette entry for a period index under the active theme (4 periods). */
   getPeriodColors(idx) {
-    const count = (typeof State !== "undefined" && State.timePeriods && State.timePeriods.length) || 3;
-    const byCount = CONFIG.periodColorsByCount[count] || CONFIG.periodColorsByCount[3];
-    const set = byCount[this.currentTheme()] || byCount.light;
+    const palette = CONFIG.periodColorsByCount[4];
+    const set = palette[this.currentTheme()] || palette.light;
     return set[idx] || set[set.length - 1];
   },
   getHourStyle(hour) {

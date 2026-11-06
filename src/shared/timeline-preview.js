@@ -40,10 +40,7 @@ export const TimelinePreview = {
       const cityName = I18nUtils.getCityName(city);
       const labelText = document.createElement("div");
       labelText.className = "city-label-text";
-      const dstSuffix = TimeUtils.isCurrentlyDST(city.zone)
-        ? ` <span class="dst-badge" title="${I18nUtils.getTranslation("dstTooltip")}"><span class="dst-icon">${I18nUtils.getTranslation("dstLabel")}</span> <span class="dst-text">${I18nUtils.getTranslation("dstBadgeText")}</span></span>`
-        : "";
-      labelText.innerHTML = `<span class="city-name">${EscapeUtils.html(cityName)}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}${dstSuffix}</span>`;
+      labelText.innerHTML = `<span class="city-name">${EscapeUtils.html(cityName)}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}</span>`;
 
       label.append(labelText);
 
@@ -172,12 +169,10 @@ export const TimelinePreview = {
       timeSpan.className = "knob-time";
       timeSpan.textContent = TimelineUtils.formatFractionTime(scrub.fraction);
 
-      const removeTitle = (typeof I18nUtils !== "undefined" && typeof I18nUtils.getTranslation === "function")
-        ? I18nUtils.getTranslation("removeScrubLine")
-        : "Remove";
+      const removeTitle = I18nUtils.getTranslation("removeScrubLine");
 
       const resetBtn = document.createElement("button");
-      resetBtn.className = "scrub-reset-btn is-visible";
+      resetBtn.className = "scrub-reset-btn";
       resetBtn.type = "button";
       resetBtn.title = removeTitle;
       resetBtn.setAttribute("aria-label", removeTitle);

@@ -14,23 +14,12 @@ import { TimeMapperVersion } from "../shared/version.js";
 import { CityPreview } from "../shared/city-preview.js";
 import { Renderer } from "./renderer.js";
 
-const PERIOD_META = {
-  2: [
-    { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "night", labelKey: "periodNight", icon: "🛌" }
-  ],
-  3: [
-    { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "evening", labelKey: "periodEvening", icon: "🌙" },
-    { key: "night", labelKey: "periodLateNight", icon: "🛌" }
-  ],
-  4: [
-    { key: "morning", labelKey: "periodMorning", icon: "🌅" },
-    { key: "day", labelKey: "periodDay", icon: "☀️" },
-    { key: "evening", labelKey: "periodEvening", icon: "🌙" },
-    { key: "night", labelKey: "periodNight", icon: "🛌" }
-  ]
-};
+const PERIOD_META = [
+  { key: "morning", labelKey: "periodMorning", icon: "🌅" },
+  { key: "day", labelKey: "periodDay", icon: "☀️" },
+  { key: "evening", labelKey: "periodEvening", icon: "🌙" },
+  { key: "night", labelKey: "periodNight", icon: "🛌" }
+];
 
 export const SettingsController = {
   cityRefs: null,
@@ -230,11 +219,8 @@ export const SettingsController = {
     if (!timelineDividersLayer) return;
     timelineDividersLayer.innerHTML = "";
 
-    const count = State.timePeriods.length;
-    const metaList = PERIOD_META[count] || PERIOD_META[3];
-
     State.timePeriods.forEach((period, idx) => {
-      const meta = metaList[idx] || { labelKey: "periodFallback", icon: "⏰" };
+      const meta = PERIOD_META[idx];
       const label = I18nUtils.getTranslation(meta.labelKey, { index: idx + 1 });
       const divider = document.createElement("div");
       divider.className = "timeline-divider";

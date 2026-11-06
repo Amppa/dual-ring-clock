@@ -43,18 +43,9 @@ export const State = {
   customCities: [],
   mapSettings: {},
   timePeriods: [],
-  _currentLang: "zh",
   /** "auto" | "zh" | "en" | "es" */
   _languagePreference: "auto",
-  get currentLang() {
-    return this._currentLang;
-  },
-  set currentLang(lang) {
-    this._currentLang = lang;
-    I18nUtils.setLang(lang);
-  },
   baseHours: [],
-  nowLineMode: "firstCity",
   scrubs: [],             // array of { id, fraction } objects
   activeScrubId: null,    // id of the active scrub line
   cityLimit: 10,
@@ -80,13 +71,12 @@ export const State = {
     this._cachedCustomCities = null;
 
     this._languagePreference = Storage.get(CONFIG.languagePreferenceKey, "auto");
-    this.currentLang = this.resolveLanguage();
+    I18nUtils.setLang(this.resolveLanguage());
     this.timePeriods = this.resolveTimePeriods(Storage.get(CONFIG.timePeriodsKey));
     this.mapSettings = this.loadMapSettings();
     this.customCities = this.resolveCustomCities(Storage.get(CONFIG.customCitiesKey));
     this.cityLimit = CONFIG.maxCities;
     this.selectedIds = this.resolveSelection(Storage.get(CONFIG.storageKey));
-    this.nowLineMode = "firstCity";
     this.scrubs = [];
     this.activeScrubId = null;
     this.makeBaseHours();
@@ -114,10 +104,10 @@ export const State = {
     this._languagePreference = lang;
     Storage.set(CONFIG.languagePreferenceKey, lang);
     if (lang === "auto") {
-      this.currentLang = this.detectNavigatorLanguage();
+      I18nUtils.setLang(this.detectNavigatorLanguage());
       return;
     }
-    this.currentLang = lang;
+    I18nUtils.setLang(lang);
     Storage.set(CONFIG.languageKey, lang);
   },
 

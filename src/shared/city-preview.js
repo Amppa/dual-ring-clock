@@ -26,7 +26,7 @@ export const CityPreview = {
       refs.currentCitiesList.classList.remove("is-dragging-active");
     }
     document.querySelectorAll(".current-city-card").forEach((c) => {
-      c.classList.remove("drag-over-top", "drag-over-bottom", "is-dragging");
+      c.classList.remove("is-dragging");
       c.style.transform = "";
       c.style.transition = "";
     });
