@@ -22,7 +22,7 @@
     <div id="clockView" class="view">
       <section class="clock-page">
         <div class="clock-face-wrap">
-          <svg id="clockDial" class="clock-dial" viewBox="-36 -72 272 308" role="img" aria-label="">
+          <svg id="clockDial" class="clock-dial" viewBox="-50 -72 300 314" role="img" aria-label="">
             <circle class="clock-bezel" cx="100" cy="100" r="135"></circle>
             <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
             <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
@@ -30,9 +30,12 @@
             <g id="clockMinuteTrackNumerals" class="clock-minute-track-numerals" aria-hidden="true"></g>
             <text id="clockInnerCityLabel" class="clock-ring-city-label" x="100" y="60" dy="0.35em" text-anchor="middle"></text>
             <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="100" y="-56" dy="0.35em" text-anchor="middle"></text>
+            <g id="clockScrubLines" class="clock-scrub-lines-layer"></g>
             <path id="clockHourHand" class="clock-hand clock-hand--hour" d="M 97.5 100 L 97.5 38.330 L 100 34 L 102.5 38.330 L 102.5 100 Z"></path>
             <path id="clockMinuteHand" class="clock-hand clock-hand--minute" d="M 98.5 100 L 98.5 30.598 L 100 28 L 101.5 30.598 L 101.5 100 Z"></path>
             <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
+            <g id="clockScrubIntervals" class="clock-scrub-intervals-layer"></g>
+            <g id="clockScrubBadges" class="clock-scrub-badges-layer"></g>
           </svg>
         </div>
         <section class="clock-cities" aria-label="City list">

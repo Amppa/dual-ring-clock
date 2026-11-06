@@ -24,6 +24,7 @@
   height: auto;
   display: block;
   overflow: visible;
+  touch-action: none;
 }
 
 .clock-bezel {
@@ -89,6 +90,7 @@
 
 .clock-hand {
   filter: drop-shadow(-1.5px 1.5px 2px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
 }
 
 .clock-hand--hour {
@@ -101,6 +103,142 @@
 
 .clock-pivot {
   fill: var(--clock-minute-track);
+  pointer-events: none;
+}
+
+:root {
+  --clock-interval-blue: #0284c7;
+}
+
+:root[data-theme="light"] {
+  --clock-interval-blue: #38bdf8;
+}
+
+.clock-scrub-line-hitbox {
+  stroke: transparent;
+  stroke-width: 18;
+  cursor: grab;
+  pointer-events: stroke;
+  touch-action: none;
+}
+
+.clock-scrub-line {
+  stroke: var(--text-primary);
+  stroke-width: 0.5;
+  stroke-dasharray: 2.5 2;
+  opacity: 0.85;
+  pointer-events: stroke;
+  cursor: grab;
+}
+
+.clock-scrub-badge {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.clock-scrub-badge.is-dragging {
+  cursor: grabbing;
+}
+
+.clock-scrub-badge-bg {
+  fill: var(--bg-card);
+  stroke: var(--divider);
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.clock-scrub-badge.is-dragging .clock-scrub-badge-bg {
+  stroke: var(--accent-solid);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+}
+
+.clock-scrub-badge-time {
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.clock-scrub-badge-time--outer {
+  fill: var(--text-primary);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.clock-scrub-badge-time--inner {
+  fill: var(--text-primary);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.clock-scrub-close-btn {
+  cursor: pointer;
+  touch-action: none;
+}
+
+.clock-scrub-close-bg {
+  fill: var(--bg-card);
+  stroke: var(--divider);
+  stroke-width: 0.8;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+.clock-scrub-close-hitbox {
+  fill: transparent;
+}
+
+.clock-scrub-close-btn text {
+  fill: var(--text-secondary);
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.clock-scrub-close-btn:hover .clock-scrub-close-bg,
+.clock-scrub-close-btn:active .clock-scrub-close-bg {
+  stroke: var(--text-secondary);
+}
+
+.clock-scrub-close-btn:hover text,
+.clock-scrub-close-btn:active text {
+  fill: var(--text-primary);
+}
+
+.clock-scrub-interval-arc {
+  fill: none;
+  stroke: var(--clock-interval-blue);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.clock-scrub-interval-pill {
+  pointer-events: none;
+  user-select: none;
+}
+
+.clock-scrub-interval-bg {
+  fill: var(--bg-card);
+  stroke: var(--clock-interval-blue);
+  stroke-width: 1;
+}
+
+.clock-scrub-interval-text {
+  fill: var(--clock-interval-blue);
+  font-size: 7.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.clock-scrub-line.is-hidden,
+.clock-scrub-badge.is-hidden,
+.clock-scrub-line[hidden],
+.clock-scrub-badge[hidden] {
+  display: none;
 }
 
 .clock-cities {
