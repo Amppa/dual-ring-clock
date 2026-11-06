@@ -248,7 +248,7 @@ export const MapPreview = {
   },
 
   renderHourLines(refs, offsetHours = 0) {
-    if (!refs.hourLines) return;
+    if (!refs.hourLines || !State.mapSettings?.showHourLines) return;
     refs.hourLines.innerHTML = "";
 
     const frag = document.createDocumentFragment();
@@ -313,6 +313,9 @@ export const MapPreview = {
 
   renderHourBands(refs, offsetHours = 0) {
     if (!refs.timezoneHoverBands) return;
+    if (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
+      return;
+    }
     refs.timezoneHoverBands.innerHTML = "";
 
     const subsolarLng = MapUtils.subsolarLng(this.shiftedNow(offsetHours));
@@ -378,7 +381,7 @@ export const MapPreview = {
 
   /** Bands + hour lines + timeline ticks; deferred past first paint and cached by offset. */
   renderNightDecorations(refs, offsetHours = 0) {
-    if (this._lastDecorOffset === offsetHours && refs.hourLines && refs.hourLines.children.length > 0) {
+    if (this._lastDecorOffset === offsetHours) {
       return;
     }
     this._lastDecorOffset = offsetHours;
