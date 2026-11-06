@@ -224,11 +224,11 @@ export const State = {
       const noonUTC = new Date(Date.UTC(year, month - 1, day, 12));
       const offsetMins = TimeUtils.getOffsetMinutes(noonUTC, zone);
       const midnightUTC = Date.UTC(year, month - 1, day, 0) - offsetMins * 60000;
-      this.baseHours = Array.from({ length: 24 }, (_, i) => new Date(midnightUTC + i * 3600000));
+      this.baseHours = [new Date(midnightUTC)];
     } else {
       const start = new Date(now);
       start.setHours(0, 0, 0, 0);
-      this.baseHours = Array.from({ length: 24 }, (_, i) => new Date(start.getTime() + i * 3600000));
+      this.baseHours = [start];
     }
   },
 
