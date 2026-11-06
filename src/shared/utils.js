@@ -218,7 +218,7 @@ export const TimeUtils = {
     const list = allZones.map((zone) => {
       const offsetMins = this.getOffsetMinutes(now, zone);
       const offsetStr = this.utcOffsetText(now, zone);
-      return { zone, offsetMins, label: `${zone} (${offsetStr})` };
+      return { zone, offsetMins, continent: RegionUtils.continentOf(zone), label: `${zone} (${offsetStr})` };
     });
 
     list.sort((a, b) => {
@@ -357,6 +357,62 @@ export const PeriodUtils = {
 
 /** lng/lat -> base-map percentage, memoised per city object. */
 const basePositionCache = new WeakMap();
+
+/**
+ * Continents for zones whose IANA prefix is an ocean or a pole. Islands are
+ * assigned by political affiliation (Iceland -> Europe, Madagascar -> Africa,
+ * Falklands -> Americas); Antarctic stations and unmapped zones fall to
+ * "other" via the prefix default.
+ */
+const ZONE_CONTINENTS = {
+  "Atlantic/Azores": "europe",
+  "Atlantic/Madeira": "europe",
+  "Atlantic/Canary": "europe",
+  "Atlantic/Faroe": "europe",
+  "Atlantic/Faeroe": "europe",
+  "Atlantic/Reykjavik": "europe",
+  "Arctic/Longyearbyen": "europe",
+  "Indian/Antananarivo": "africa",
+  "Indian/Comoro": "africa",
+  "Indian/Mayotte": "africa",
+  "Indian/Reunion": "africa",
+  "Indian/Mauritius": "africa",
+  "Indian/Mahe": "africa",
+  "Atlantic/Cape_Verde": "africa",
+  "Atlantic/St_Helena": "africa",
+  "Indian/Maldives": "asia",
+  "Indian/Chagos": "asia",
+  "Indian/Christmas": "asia",
+  "Indian/Cocos": "asia",
+  "Atlantic/Bermuda": "americas",
+  "Atlantic/South_Georgia": "americas",
+  "Atlantic/Stanley": "americas"
+};
+
+const ZONE_PREFIX_CONTINENTS = {
+  America: "americas",
+  Asia: "asia",
+  Europe: "europe",
+  Africa: "africa",
+  Australia: "oceania",
+  Pacific: "oceania"
+};
+
+export const RegionUtils = {
+  /** Fixed continent option order with their i18n label keys. */
+  continents: [
+    { id: "asia", labelKey: "contAsia" },
+    { id: "europe", labelKey: "contEurope" },
+    { id: "africa", labelKey: "contAfrica" },
+    { id: "americas", labelKey: "contAmerica" },
+    { id: "oceania", labelKey: "contOceania" },
+    { id: "other", labelKey: "contOther" }
+  ],
+
+  continentOf(zone) {
+    return ZONE_CONTINENTS[zone] || ZONE_PREFIX_CONTINENTS[zone.split("/")[0]] || "other";
+  }
+};
 
 export const MapUtils = {
   /**

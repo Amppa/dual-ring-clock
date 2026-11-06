@@ -306,6 +306,17 @@
   background: var(--bg-card);
 }
 
+/* Two-column add flow: continent select slots in between the name and the
+   zone select. The two-class selector outranks the touch-layout template. */
+.current-city-card.add-city-card {
+  grid-template-columns: 24px 60px minmax(0, 1fr) minmax(0, 1.2fr) 28px;
+  grid-template-areas: "handle name continent zone remove";
+}
+
+.add-city-card .city-continent-select {
+  min-width: 0;
+}
+
 .add-city-card .add-card-placeholder {
   pointer-events: none;
 }

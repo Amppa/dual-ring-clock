@@ -8,6 +8,7 @@ import {
   MathUtils,
   I18nUtils,
   PeriodUtils,
+  RegionUtils,
   TimeUtils
 } from "../shared/utils.js";
 import { TimeMapperVersion } from "../shared/version.js";
@@ -52,38 +53,64 @@ export const SettingsController = {
 
     const mobileAddCityZone = document.getElementById("mobileAddCityZone");
     const mobileAddCityName = document.getElementById("mobileAddCityName");
+    const mobileAddCityContinent = document.getElementById("mobileAddCityContinent");
     if (mobileAddCityZone) {
       const isFull = State.selectedIds.length >= State.cityLimit;
       mobileAddCityZone.disabled = isFull;
       if (mobileAddCityName) mobileAddCityName.disabled = isFull;
+      if (mobileAddCityContinent) mobileAddCityContinent.disabled = isFull;
     }
   },
 
   initMobileAddCity() {
     const mobileAddCityName = document.getElementById("mobileAddCityName");
+    const mobileAddCityContinent = document.getElementById("mobileAddCityContinent");
     const mobileAddCityZone = document.getElementById("mobileAddCityZone");
-    if (!mobileAddCityZone) return;
+    if (!mobileAddCityContinent || !mobileAddCityZone) return;
 
-    mobileAddCityZone.innerHTML = "";
     const zoneToCity = new Map();
     State.allCities().forEach((city) => {
       if (city.id === "local" || city.id.startsWith("custom-")) return;
       if (!zoneToCity.has(city.zone)) zoneToCity.set(city.zone, city);
     });
 
-    const sortedZones = TimeUtils.getSortedZones();
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = I18nUtils.getTranslation("cityZonePlaceholder") || "選擇城市時區";
-    mobileAddCityZone.appendChild(placeholder);
-
-    sortedZones.forEach((detail) => {
+    const makeOption = (value, text) => {
       const option = document.createElement("option");
-      option.value = detail.zone;
-      option.textContent = detail.label;
-      const city = zoneToCity.get(detail.zone);
-      option.dataset.cityName = city ? I18nUtils.getCityName(city) : detail.zone.split("/").pop().replace(/_/g, " ");
-      mobileAddCityZone.appendChild(option);
+      option.value = value;
+      option.textContent = text;
+      return option;
+    };
+
+    mobileAddCityContinent.innerHTML = "";
+    mobileAddCityContinent.appendChild(makeOption("", I18nUtils.getTranslation("continentPlaceholder")));
+    const sortedZones = TimeUtils.getSortedZones();
+    const continentsPresent = new Set(sortedZones.map((d) => d.continent));
+    RegionUtils.continents.forEach(({ id, labelKey }) => {
+      if (continentsPresent.has(id)) {
+        mobileAddCityContinent.appendChild(makeOption(id, I18nUtils.getTranslation(labelKey)));
+      }
+    });
+
+    // Second column: the continent's zones in plain offset order; the
+    // whole world stays pickable. cityName feeds the name prefill on add.
+    const fillZoneOptions = (continent) => {
+      mobileAddCityZone.innerHTML = "";
+      mobileAddCityZone.appendChild(makeOption("", I18nUtils.getTranslation("cityZonePlaceholder") || "選擇城市時區"));
+      if (!continent) return;
+      const cityNameOf = (zone) => {
+        const city = zoneToCity.get(zone);
+        return city ? I18nUtils.getCityName(city) : zone.split("/").pop().replace(/_/g, " ");
+      };
+      sortedZones.filter((d) => d.continent === continent).forEach((detail) => {
+        const option = makeOption(detail.zone, detail.label);
+        option.dataset.cityName = cityNameOf(detail.zone);
+        mobileAddCityZone.appendChild(option);
+      });
+    };
+    fillZoneOptions("");
+
+    mobileAddCityContinent.addEventListener("change", () => {
+      fillZoneOptions(mobileAddCityContinent.value);
     });
 
     mobileAddCityZone.addEventListener("change", () => {
