@@ -42,7 +42,19 @@ export const State = {
   selectedIds: [],
   customCities: [],
   mapSettings: {},
-  timePeriods: [],
+  periodMode: "dayNight",
+  dayNightPeriods: [],
+  routinePeriods: [],
+  get timePeriods() {
+    return this.periodMode === "dayNight" ? this.dayNightPeriods : this.routinePeriods;
+  },
+  set timePeriods(val) {
+    if (this.periodMode === "dayNight") {
+      this.dayNightPeriods = val;
+    } else {
+      this.routinePeriods = val;
+    }
+  },
   /** "auto" | "zh" | "en" | "es" */
   _languagePreference: "auto",
   baseHours: [],
@@ -72,7 +84,9 @@ export const State = {
 
     this._languagePreference = Storage.get(CONFIG.languagePreferenceKey, "auto");
     I18nUtils.setLang(this.resolveLanguage());
-    this.timePeriods = this.resolveTimePeriods(Storage.get(CONFIG.timePeriodsKey));
+    this.periodMode = Storage.get(CONFIG.periodModeKey, CONFIG.defaultPeriodMode) || "dayNight";
+    this.dayNightPeriods = this.resolveDayNightPeriods(Storage.get(CONFIG.dayNightPeriodsKey));
+    this.routinePeriods = this.resolveTimePeriods(Storage.get(CONFIG.timePeriodsKey));
     this.mapSettings = this.loadMapSettings();
     this.customCities = this.resolveCustomCities(Storage.get(CONFIG.customCitiesKey));
     this.cityLimit = CONFIG.maxCities;
@@ -111,6 +125,19 @@ export const State = {
     Storage.set(CONFIG.languageKey, lang);
   },
 
+  resolveDayNightPeriods(saved) {
+    const fallback = () => JSON.parse(JSON.stringify(CONFIG.defaultDayNightPeriods));
+    if (Array.isArray(saved) && saved.length === 2 &&
+      saved.every((p) => p && Number.isFinite(Number(p.start)) && Number.isFinite(Number(p.end)))) {
+      return saved.map((p, i) => ({
+        name: p.name || CONFIG.defaultDayNightPeriods[i]?.name || `period${i + 1}`,
+        start: Number(p.start),
+        end: Number(p.end)
+      }));
+    }
+    return fallback();
+  },
+
   resolveTimePeriods(saved) {
     const fallback = () => JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
     if (Array.isArray(saved) && saved.length === 4 &&
@@ -125,7 +152,9 @@ export const State = {
   },
 
   saveTimePeriods() {
-    Storage.set(CONFIG.timePeriodsKey, this.timePeriods);
+    Storage.set(CONFIG.periodModeKey, this.periodMode);
+    Storage.set(CONFIG.dayNightPeriodsKey, this.dayNightPeriods);
+    Storage.set(CONFIG.timePeriodsKey, this.routinePeriods);
   },
 
   loadMapSettings() {

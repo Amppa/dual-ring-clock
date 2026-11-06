@@ -489,10 +489,66 @@
 /* ==========================================================================
    Interactive 24-Hour Grid Timeline (Matches Preview Timeline Style)
    ========================================================================== */
+/* --------------------------------------------------------------------------
+   Time Periods Mode Blocks & Timeline
+   ========================================================================== */
+.time-periods-modes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 0 var(--space-md) 0;
+}
+
+.period-mode-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: opacity 0.2s ease;
+}
+
+.period-mode-block:not(.is-active) {
+  opacity: 0.35;
+  cursor: pointer;
+}
+
+.period-mode-block:not(.is-active) .timeline-divider,
+.period-mode-block:not(.is-active) .interactive-timeline-panel {
+  pointer-events: none;
+}
+
+.period-mode-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+
+.period-mode-radio {
+  appearance: auto;
+  accent-color: var(--text-primary);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.period-mode-title {
+  font-size: var(--font-md);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
+.period-mode-block.is-active .period-mode-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 .time-periods-timeline-container {
   display: flex;
   flex-direction: column;
-  padding: 0 0 var(--space-md) 0;
   user-select: none;
 }
 
@@ -503,7 +559,6 @@
   background: var(--bg-primary);
   border: 1px solid var(--divider);
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   padding: 0;
   margin: 12px 0 0 0;
 }
@@ -519,20 +574,15 @@
 
 /* Interactive Hour Cell inherits layout, sizing and typography from .hour-cell */
 .interactive-hour-cell {
-  cursor: pointer;
+  cursor: default;
   /* Same type size as the preview cells. The settings column is 360px wide
      against the preview's 760px, so 24 cells get half the room and the
      tracking stays tight to keep the two-digit labels from touching. */
   letter-spacing: -0.5px;
-  transition: background-color 0.15s ease, filter 0.15s ease;
 }
 
 .interactive-hour-cell:last-child {
   border-right: none;
-}
-
-.interactive-hour-cell:hover {
-  filter: brightness(1.15);
 }
 
 /* Dividers Layer */
@@ -568,9 +618,12 @@
   left: 50%;
   width: 2px;
   transform: translateX(-50%);
-  background: #ffffff;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-top: none;
+  border-bottom: none;
+  box-sizing: content-box;
   pointer-events: none;
+  z-index: 12;
 }
 
 /* The shared knob classes anchor to a zero-width line; the divider is a
@@ -587,17 +640,29 @@
   padding: 3px 6px;
 }
 
+/* Unified style for all 3 divider elements: pill, line, and circle */
+.timeline-divider .timeline-knob,
+.timeline-divider .timeline-knob-bottom,
+.timeline-divider .timeline-divider-line {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.timeline-divider:hover .timeline-knob,
+.timeline-divider:hover .timeline-knob-bottom,
+.timeline-divider:hover .timeline-divider-line,
+.timeline-divider.is-dragging .timeline-knob,
+.timeline-divider.is-dragging .timeline-knob-bottom,
+.timeline-divider.is-dragging .timeline-divider-line {
+  border-color: var(--text-primary);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+}
+
 .timeline-divider:hover .timeline-knob,
 .timeline-divider:hover .timeline-knob-bottom,
 .timeline-divider.is-dragging .timeline-knob,
 .timeline-divider.is-dragging .timeline-knob-bottom {
   transform: translateX(-50%) scale(1.18);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
-  border-color: var(--accent-solid);
 }
-
-.timeline-divider.is-dragging .timeline-divider-line {
-  background: var(--accent-solid);
-  width: 3px;
-}
-

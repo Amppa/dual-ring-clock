@@ -16,10 +16,10 @@ import { CityPreview } from "../shared/city-preview.js";
 import { Renderer } from "./renderer.js";
 
 const PERIOD_META = [
-  { key: "morning", labelKey: "periodMorning", icon: "🌅" },
-  { key: "day", labelKey: "periodDay", icon: "☀️" },
-  { key: "evening", labelKey: "periodEvening", icon: "🌙" },
-  { key: "night", labelKey: "periodNight", icon: "🛌" }
+  { key: "morning", labelKey: "periodMorning" },
+  { key: "day", labelKey: "periodDay" },
+  { key: "evening", labelKey: "periodEvening" },
+  { key: "night", labelKey: "periodNight" }
 ];
 
 export const SettingsController = {
@@ -195,10 +195,13 @@ export const SettingsController = {
     }
   },
 
-  renderInteractiveHours() {
-    const interactiveHours = document.getElementById("interactiveHours");
-    if (!interactiveHours) return;
-    interactiveHours.innerHTML = "";
+  renderInteractiveHours(mode) {
+    const isDayNight = mode === "dayNight";
+    const hoursEl = document.getElementById(isDayNight ? "interactiveHoursDayNight" : "interactiveHoursRoutine");
+    if (!hoursEl) return;
+    hoursEl.innerHTML = "";
+
+    const periods = isDayNight ? State.dayNightPeriods : State.routinePeriods;
 
     for (let h = 0; h < 24; h++) {
       const cell = document.createElement("div");
@@ -207,25 +210,31 @@ export const SettingsController = {
       cell.dataset.hour = String(h);
       cell.title = I18nUtils.getTranslation("hourCellTitle", { time: `${String(h).padStart(2, "0")}:00` });
 
-      const styleInfo = PeriodUtils.getHourStyle(h);
+      const styleInfo = PeriodUtils.getHourStyle(h, periods);
       cell.style.backgroundColor = styleInfo.color;
       cell.style.color = styleInfo.fontColor;
 
       cell.addEventListener("click", () => {
-        this.handleCellClick(h);
+        this.handleCellClick(mode, h);
       });
 
-      interactiveHours.appendChild(cell);
+      hoursEl.appendChild(cell);
     }
   },
 
-  renderTimelineDividers() {
-    const timelineDividersLayer = document.getElementById("timelineDividersLayer");
-    if (!timelineDividersLayer) return;
-    timelineDividersLayer.innerHTML = "";
+  renderTimelineDividers(mode) {
+    const isDayNight = mode === "dayNight";
+    const dividersLayer = document.getElementById(isDayNight ? "timelineDividersLayerDayNight" : "timelineDividersLayerRoutine");
+    if (!dividersLayer) return;
+    dividersLayer.innerHTML = "";
 
-    State.timePeriods.forEach((period, idx) => {
-      const meta = PERIOD_META[idx];
+    const periods = isDayNight ? State.dayNightPeriods : State.routinePeriods;
+    const metaList = isDayNight
+      ? [{ labelKey: "periodDay" }, { labelKey: "periodNight" }]
+      : PERIOD_META;
+
+    periods.forEach((period, idx) => {
+      const meta = metaList[idx] || { labelKey: `period${idx + 1}` };
       const label = I18nUtils.getTranslation(meta.labelKey, { index: idx + 1 });
       const divider = document.createElement("div");
       divider.className = "timeline-divider";
@@ -238,7 +247,7 @@ export const SettingsController = {
 
       const topKnob = document.createElement("div");
       topKnob.className = "timeline-knob divider-knob-top";
-      topKnob.textContent = `${meta.icon} ${String(period.start).padStart(2, "0")}:00`;
+      topKnob.textContent = `${String(period.start).padStart(2, "0")}:00`;
 
       const line = document.createElement("div");
       line.className = "timeline-divider-line";
@@ -247,18 +256,48 @@ export const SettingsController = {
       bottomKnob.className = "timeline-knob-bottom";
 
       divider.append(topKnob, line, bottomKnob);
-      this.wireDividerDrag(divider, idx);
-      timelineDividersLayer.appendChild(divider);
+      this.wireDividerDrag(divider, mode, idx);
+      dividersLayer.appendChild(divider);
     });
   },
 
-  moveDividerToHour(idx, targetHour) {
-    const N = State.timePeriods.length;
+  updateInteractiveHours(mode) {
+    const isDayNight = mode === "dayNight";
+    const hoursEl = document.getElementById(isDayNight ? "interactiveHoursDayNight" : "interactiveHoursRoutine");
+    if (!hoursEl) return;
+    const periods = isDayNight ? State.dayNightPeriods : State.routinePeriods;
+
+    const cells = hoursEl.children;
+    for (let h = 0; h < 24 && h < cells.length; h++) {
+      const cell = cells[h];
+      const styleInfo = PeriodUtils.getHourStyle(h, periods);
+      cell.style.backgroundColor = styleInfo.color;
+      cell.style.color = styleInfo.fontColor;
+    }
+  },
+
+  updateDividerPosition(dividerEl, targetHour) {
+    dividerEl.style.left = `${(targetHour / 24) * 100}%`;
+    dividerEl.setAttribute("aria-valuenow", String(targetHour));
+    const topKnob = dividerEl.querySelector(".divider-knob-top");
+    if (topKnob) {
+      topKnob.textContent = `${String(targetHour).padStart(2, "0")}:00`;
+    }
+  },
+
+  moveDividerToHour(mode, idx, targetHour) {
+    if (State.periodMode !== mode) return false;
+
+    const isDayNight = mode === "dayNight";
+    const periods = isDayNight ? State.dayNightPeriods : State.routinePeriods;
+    if (targetHour === periods[idx].start) return false;
+
+    const N = periods.length;
     const prevIdx = (idx - 1 + N) % N;
     const nextIdx = (idx + 1) % N;
 
-    const prevStart = State.timePeriods[prevIdx].start;
-    const nextStart = State.timePeriods[nextIdx].start;
+    const prevStart = periods[prevIdx].start;
+    const nextStart = periods[nextIdx].start;
 
     if (targetHour === prevStart || targetHour === nextStart) return false;
 
@@ -268,23 +307,31 @@ export const SettingsController = {
 
     if (!isInsidePrev) return false;
 
-    State.timePeriods[idx].start = targetHour;
-    State.timePeriods[prevIdx].end = (targetHour - 1 + 24) % 24;
-
-    State.saveTimePeriods();
-    this.renderInteractiveHours();
-    this.renderTimelineDividers();
-    Renderer.render();
+    periods[idx].start = targetHour;
+    periods[prevIdx].end = (targetHour - 1 + 24) % 24;
     return true;
   },
 
-  handleCellClick(targetHour) {
-    const N = State.timePeriods.length;
+  applyDividerMove(mode, idx, targetHour, dividerEl) {
+    const moved = this.moveDividerToHour(mode, idx, targetHour);
+    if (!moved) return false;
+
+    this.updateDividerPosition(dividerEl, targetHour);
+    this.updateInteractiveHours(mode);
+    return true;
+  },
+
+  handleCellClick(mode, targetHour) {
+    if (State.periodMode !== mode) return;
+
+    const isDayNight = mode === "dayNight";
+    const periods = isDayNight ? State.dayNightPeriods : State.routinePeriods;
+    const N = periods.length;
     let bestIdx = -1;
     let minDistance = 999;
 
     for (let i = 0; i < N; i++) {
-      const start = State.timePeriods[i].start;
+      const start = periods[i].start;
       const dist = Math.min(
         Math.abs(targetHour - start),
         24 - Math.abs(targetHour - start)
@@ -296,38 +343,78 @@ export const SettingsController = {
     }
 
     if (bestIdx >= 0) {
-      this.moveDividerToHour(bestIdx, targetHour);
+      const moved = this.moveDividerToHour(mode, bestIdx, targetHour);
+      if (moved) {
+        State.saveTimePeriods();
+        this.renderPeriodControls();
+        Renderer.render();
+      }
     }
   },
 
-  wireDividerDrag(dividerEl, idx) {
-    const interactiveHours = document.getElementById("interactiveHours");
+  wireDividerDrag(dividerEl, mode, idx) {
+    const isDayNight = mode === "dayNight";
+    const hoursEl = document.getElementById(isDayNight ? "interactiveHoursDayNight" : "interactiveHoursRoutine");
     let isDragging = false;
+    let cachedRect = null;
+    let pendingClientX = null;
+    let dragRafId = null;
 
-    const onPointerMove = (e) => {
-      if (!isDragging || !interactiveHours) return;
-      const rect = interactiveHours.getBoundingClientRect();
-      if (rect.width <= 0) return;
+    const updateDrag = () => {
+      dragRafId = null;
+      if (!isDragging || !cachedRect || pendingClientX === null || State.periodMode !== mode) return;
 
-      const px = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-      const rawHour = Math.round((px / rect.width) * 24) % 24;
-      this.moveDividerToHour(idx, rawHour);
+      const px = Math.max(0, Math.min(pendingClientX - cachedRect.left, cachedRect.width));
+      const rawHour = Math.round((px / cachedRect.width) * 24) % 24;
+      this.applyDividerMove(mode, idx, rawHour, dividerEl);
     };
 
-    const onPointerUp = () => {
+    const onPointerMove = (e) => {
+      if (!isDragging || State.periodMode !== mode) return;
+      pendingClientX = e.clientX;
+      if (dragRafId !== null) return;
+      dragRafId = requestAnimationFrame(updateDrag);
+    };
+
+    const onPointerUp = (e) => {
       if (!isDragging) return;
       isDragging = false;
+
+      if (dragRafId !== null) {
+        cancelAnimationFrame(dragRafId);
+        dragRafId = null;
+      }
+
+      try {
+        dividerEl.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+
       dividerEl.classList.remove("is-dragging");
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
+
+      State.saveTimePeriods();
+      Renderer.render();
     };
 
     dividerEl.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
+      if (State.periodMode !== mode) return; // Must be enabled first
+      if (!hoursEl) return;
+
+      cachedRect = hoursEl.getBoundingClientRect();
+      if (cachedRect.width <= 0) return;
+
       isDragging = true;
+      pendingClientX = e.clientX;
       dividerEl.classList.add("is-dragging");
-      window.addEventListener("pointermove", onPointerMove);
+
+      try {
+        dividerEl.setPointerCapture(e.pointerId);
+      } catch (_) {}
+
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
       window.addEventListener("pointerup", onPointerUp);
       window.addEventListener("pointercancel", onPointerUp);
       e.preventDefault();
@@ -335,15 +422,69 @@ export const SettingsController = {
   },
 
   renderPeriodControls() {
-    this.renderInteractiveHours();
-    this.renderTimelineDividers();
+    const isDayNight = State.periodMode === "dayNight";
+
+    const radioDayNight = document.getElementById("periodModeRadioDayNight");
+    const radioRoutine = document.getElementById("periodModeRadioRoutine");
+    if (radioDayNight) radioDayNight.checked = isDayNight;
+    if (radioRoutine) radioRoutine.checked = !isDayNight;
+
+    const blockDayNight = document.getElementById("periodModeBlockDayNight");
+    const blockRoutine = document.getElementById("periodModeBlockRoutine");
+    if (blockDayNight) blockDayNight.classList.toggle("is-active", isDayNight);
+    if (blockRoutine) blockRoutine.classList.toggle("is-active", !isDayNight);
+
+    this.renderInteractiveHours("dayNight");
+    this.renderTimelineDividers("dayNight");
+
+    this.renderInteractiveHours("routine");
+    this.renderTimelineDividers("routine");
   },
 
   wirePeriods() {
+    const radioDayNight = document.getElementById("periodModeRadioDayNight");
+    const radioRoutine = document.getElementById("periodModeRadioRoutine");
+    const blockDayNight = document.getElementById("periodModeBlockDayNight");
+    const blockRoutine = document.getElementById("periodModeBlockRoutine");
+
+    const selectMode = (mode) => {
+      if (State.periodMode === mode) return;
+      State.periodMode = mode;
+      State.saveTimePeriods();
+      this.renderPeriodControls();
+      Renderer.render();
+    };
+
+    if (radioDayNight) {
+      radioDayNight.addEventListener("change", () => {
+        if (radioDayNight.checked) selectMode("dayNight");
+      });
+    }
+
+    if (radioRoutine) {
+      radioRoutine.addEventListener("change", () => {
+        if (radioRoutine.checked) selectMode("routine");
+      });
+    }
+
+    if (blockDayNight) {
+      blockDayNight.addEventListener("click", () => {
+        selectMode("dayNight");
+      });
+    }
+
+    if (blockRoutine) {
+      blockRoutine.addEventListener("click", () => {
+        selectMode("routine");
+      });
+    }
+
     const resetPeriodsButton = document.getElementById("resetPeriodsButton");
     if (resetPeriodsButton) {
       resetPeriodsButton.addEventListener("click", () => {
-        State.timePeriods = JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
+        State.dayNightPeriods = JSON.parse(JSON.stringify(CONFIG.defaultDayNightPeriods));
+        State.routinePeriods = JSON.parse(JSON.stringify(CONFIG.defaultTimePeriods));
+        State.periodMode = "dayNight";
         State.saveTimePeriods();
         this.renderPeriodControls();
         Renderer.render();

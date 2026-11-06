@@ -75,15 +75,17 @@ function timePartsInZone(date, zone) {
 }
 
 function buildRingPaths(radius, width, offsetHours) {
-  const periods = State.timePeriods && State.timePeriods.length === 4
+  const periods = State.timePeriods && (State.timePeriods.length === 2 || State.timePeriods.length === 4)
     ? State.timePeriods
-    : CONFIG.defaultTimePeriods;
+    : CONFIG.defaultDayNightPeriods;
+
+  const tones = periods.length === 2 ? ["day", "evening"] : PERIOD_TONES;
 
   return periods.map((period, i) => {
     const nextPeriod = periods[(i + 1) % periods.length];
     const start = period.start;
     const end = nextPeriod.start;
-    const tone = PERIOD_TONES[i] || "day";
+    const tone = tones[i] || "day";
     return `<path class="clock-ring--${tone}" d="${ringArc(start, end, radius, offsetHours)}" style="stroke-width: ${width}"></path>`;
   });
 }
@@ -203,7 +205,7 @@ export const ClockView = {
     const { city1, city2, zone1, zone2, offset1, offset2, configs } = this._ringConfigs(now);
     this._current = { city1, city2 };
 
-    const periodSig = (State.timePeriods || []).map((p) => p.start).join(",");
+    const periodSig = `${State.periodMode || ""}|${(State.timePeriods || []).map((p) => p.start).join(",")}`;
     const signature = `${zone1}|${offset1}|${zone2}|${offset2}|${periodSig}`;
     if (signature === this._ringSignature) return;
     this._ringSignature = signature;

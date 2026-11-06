@@ -334,14 +334,15 @@ export const PeriodUtils = {
     } catch { }
     return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   },
-  /** Fixed palette entry for a period index under the active theme (4 periods). */
-  getPeriodColors(idx) {
-    const palette = CONFIG.periodColorsByCount[4];
+  /** Fixed palette entry for a period index under the active theme (2 or 4 periods). */
+  getPeriodColors(idx, count) {
+    const periodCount = count || (State.timePeriods && State.timePeriods.length === 2 ? 2 : 4);
+    const palette = CONFIG.periodColorsByCount[periodCount] || CONFIG.periodColorsByCount[4];
     const set = palette[this.currentTheme()] || palette.light;
     return set[idx] || set[set.length - 1];
   },
-  getHourStyle(hour) {
-    const timePeriods = State.timePeriods || CONFIG.defaultTimePeriods;
+  getHourStyle(hour, periods) {
+    const timePeriods = periods || State.timePeriods || CONFIG.defaultDayNightPeriods;
     let idx = timePeriods.findIndex((p) => {
       if (p.start <= p.end) {
         return hour >= p.start && hour <= p.end;
@@ -351,7 +352,7 @@ export const PeriodUtils = {
     });
     if (idx < 0) idx = timePeriods.length - 1;
     const period = timePeriods[idx];
-    return { ...period, ...this.getPeriodColors(idx) };
+    return { ...period, ...this.getPeriodColors(idx, timePeriods.length) };
   }
 };
 

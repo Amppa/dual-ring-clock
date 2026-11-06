@@ -22,6 +22,8 @@ export const CONFIG = {
   storageKey: "worldTimeAlignerCities",
   customCitiesKey: "worldTimeAlignerCustomCities",
   timePeriodsKey: "worldTimeAlignerTimePeriods",
+  periodModeKey: "worldTimeAlignerPeriodMode",
+  dayNightPeriodsKey: "worldTimeAlignerDayNightPeriods",
   languageKey: "worldTimeAlignerLanguage",
   languagePreferenceKey: "worldTimeAlignerLanguagePref",
   /** Internal UI language codes offered in the settings. */
@@ -38,6 +40,11 @@ export const CONFIG = {
     showHourLines: false,
     showCityTimes: true
   },
+  defaultPeriodMode: "dayNight",
+  defaultDayNightPeriods: [
+    { name: "day", start: 6, end: 17 },
+    { name: "night", start: 18, end: 5 }
+  ],
   defaultTimePeriods: [
     { name: "morning", start: 7, end: 7 },
     { name: "day", start: 8, end: 17 },
@@ -45,6 +52,16 @@ export const CONFIG = {
     { name: "night", start: 0, end: 6 }
   ],
   periodColorsByCount: {
+    2: {
+      light: [
+        { color: "#FFE7A3", fontColor: "#000000" },
+        { color: "#856C60", fontColor: "#FFFFFF" }
+      ],
+      dark: [
+        { color: "#EEB422", fontColor: "#000000" },
+        { color: "#38302E", fontColor: "#FFFFFF" }
+      ]
+    },
     4: {
       light: [
         { color: "#F9BE6C", fontColor: "#000000" },

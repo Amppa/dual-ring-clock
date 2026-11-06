@@ -101,15 +101,37 @@
             <div class="card-header">
               <div class="card-header-titles">
                 <h2 class="section-title" data-i18n="periodCardTitle">時段設定</h2>
-                <span class="control-desc" data-i18n="dragHandleDesc">拖曳手柄以調整時段範圍</span>
               </div>
               <button type="button" class="reset-btn" id="resetPeriodsButton" data-i18n="resetBtn">恢復預設</button>
             </div>
 
-            <div class="time-periods-timeline-container">
-              <div class="interactive-timeline-panel" id="interactiveTimelinePanel">
-                <div class="hours interactive-hours" id="interactiveHours"></div>
-                <div class="timeline-dividers-layer" id="timelineDividersLayer"></div>
+            <div class="time-periods-modes-container">
+              <!-- Mode: 日夜模式 (2段) -->
+              <div class="period-mode-block" id="periodModeBlockDayNight">
+                <label class="period-mode-header">
+                  <input type="radio" name="periodMode" value="dayNight" id="periodModeRadioDayNight" class="period-mode-radio">
+                  <span class="period-mode-title" data-i18n="periodModeDayNight">日夜模式</span>
+                </label>
+                <div class="time-periods-timeline-container">
+                  <div class="interactive-timeline-panel" id="timelinePanelDayNight">
+                    <div class="hours interactive-hours" id="interactiveHoursDayNight"></div>
+                    <div class="timeline-dividers-layer" id="timelineDividersLayerDayNight"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mode: 作息模式 (4段) -->
+              <div class="period-mode-block" id="periodModeBlockRoutine">
+                <label class="period-mode-header">
+                  <input type="radio" name="periodMode" value="routine" id="periodModeRadioRoutine" class="period-mode-radio">
+                  <span class="period-mode-title" data-i18n="periodModeRoutine">作息模式</span>
+                </label>
+                <div class="time-periods-timeline-container">
+                  <div class="interactive-timeline-panel" id="timelinePanelRoutine">
+                    <div class="hours interactive-hours" id="interactiveHoursRoutine"></div>
+                    <div class="timeline-dividers-layer" id="timelineDividersLayerRoutine"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
