@@ -46,12 +46,8 @@ jobs:
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "Using production keystore from repository secrets..."
             echo "$KEYSTORE_BASE64" | base64 --decode > android/keystore/dualringclock-release.jks
-            cat <<EOF > android/keystore.properties
-storeFile=../keystore/dualringclock-release.jks
-storePassword=$KEYSTORE_PASSWORD
-keyAlias=$KEY_ALIAS
-keyPassword=$KEY_PASSWORD
-EOF
+            printf "storeFile=../keystore/dualringclock-release.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n" \
+              "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > android/keystore.properties
           else
             echo "No production keystore secret found; generating self-signed keystore for release..."
             keytool -genkeypair -v \
@@ -60,12 +56,7 @@ EOF
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass androidrelease -keypass androidrelease \
               -dname "CN=DualRingClock, OU=Mobile, O=DualRing, L=Taipei, ST=Taiwan, C=TW"
-            cat <<EOF > android/keystore.properties
-storeFile=../keystore/dualringclock-release.jks
-storePassword=androidrelease
-keyAlias=dualringclock
-keyPassword=androidrelease
-EOF
+            printf "storeFile=../keystore/dualringclock-release.jks\nstorePassword=androidrelease\nkeyAlias=dualringclock\nkeyPassword=androidrelease\n" > android/keystore.properties
           fi
 
       - name: Setup Gradle
