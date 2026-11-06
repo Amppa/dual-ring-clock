@@ -22,7 +22,7 @@
     <div id="clockView" class="view">
       <section class="clock-page">
         <div class="clock-face-wrap">
-          <svg id="clockDial" class="clock-dial" viewBox="-36 -36 272 272" role="img" aria-label="">
+          <svg id="clockDial" class="clock-dial" viewBox="-36 -72 272 308" role="img" aria-label="">
             <circle class="clock-bezel" cx="100" cy="100" r="135"></circle>
             <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
             <g id="clockTicks" aria-hidden="true"></g>
@@ -31,14 +31,13 @@
             <g id="clockMinuteTrack" class="clock-minute-track" aria-hidden="true"></g>
             <g id="clockMinuteTrackNumerals" class="clock-minute-track-numerals" aria-hidden="true"></g>
             <text id="clockInnerCityLabel" class="clock-ring-city-label" x="100" y="60" dy="0.35em" text-anchor="middle"></text>
-            <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="-6.066" y="-6.066" dy="0.35em" text-anchor="middle"></text>
+            <text id="clockOuterCityLabel" class="clock-ring-city-label clock-ring-city-label--outer" x="100" y="-56" dy="0.35em" text-anchor="middle"></text>
             <path id="clockHourHand" class="clock-hand clock-hand--hour" d="M 97.5 100 L 97.5 38.330 L 100 34 L 102.5 38.330 L 102.5 100 Z"></path>
             <path id="clockMinuteHand" class="clock-hand clock-hand--minute" d="M 98.5 100 L 98.5 30.598 L 100 28 L 101.5 30.598 L 101.5 100 Z"></path>
             <circle class="clock-pivot" cx="100" cy="100" r="4.5"></circle>
           </svg>
         </div>
-        <section class="clock-cities" aria-labelledby="clockCitiesTitle">
-          <h2 id="clockCitiesTitle" class="clock-section-title" data-i18n="clockSelectedCities">城市清單</h2>
+        <section class="clock-cities" aria-label="City list">
           <ul id="clockCityList" class="clock-city-list"></ul>
         </section>
       </section>

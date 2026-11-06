@@ -20,8 +20,8 @@
 }
 
 .clock-dial {
-  width: min(94vw, 416px);
-  aspect-ratio: 1;
+  width: min(90vw, 460px);
+  height: auto;
   display: block;
   overflow: visible;
 }
@@ -60,7 +60,7 @@
 .clock-ring-city-label {
   fill: var(--text-primary);
   opacity: 0.5;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
 }
 
@@ -70,7 +70,7 @@
 
 .clock-numeral {
   fill: var(--clock-badge-ink);
-  font-size: 8.5px;
+  font-size: 7.5px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
@@ -107,13 +107,6 @@
 .clock-cities {
   display: flex;
   flex-direction: column;
-}
-
-.clock-section-title {
-  font-size: var(--font-md);
-  font-weight: 600;
-  color: var(--text-primary);
-  padding-bottom: 4px;
 }
 
 .clock-city-list {

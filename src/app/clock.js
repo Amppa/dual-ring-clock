@@ -9,9 +9,9 @@ import { DragReorderController } from "../shared/drag-reorder.js";
 
 const DIAL_CENTER = 100;
 const HOUR_STEP_DEG = 15;
-const INNER_RADIUS = 88;
-const INNER_WIDTH = 20;
-const INNER_BADGE_RADIUS = 6.5;
+const INNER_RADIUS = 91;
+const INNER_WIDTH = 18;
+const INNER_BADGE_RADIUS = 6;
 const OUTER_RADIUS = 117;
 const OUTER_WIDTH = 26;
 const OUTER_BADGE_RADIUS = 9;
