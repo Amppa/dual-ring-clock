@@ -410,7 +410,23 @@ export const ClockView = {
     const dial = this._refs?.dial;
     if (!dial) return;
 
+    let cachedCenter = null;
+    const updateCachedCenter = () => {
+      const pt = dial.createSVGPoint();
+      pt.x = DIAL_CENTER;
+      pt.y = DIAL_CENTER;
+      const screenCenter = pt.matrixTransform(dial.getScreenCTM());
+      cachedCenter = { x: screenCenter.x, y: screenCenter.y };
+    };
+
     const calcAngleFromPointer = (e) => {
+      if (cachedCenter) {
+        const dx = e.clientX - cachedCenter.x;
+        const dy = e.clientY - cachedCenter.y;
+        const rad = Math.atan2(dx, -dy);
+        const deg = (rad * 180 / Math.PI + 360) % 360;
+        return (Math.round(deg / SCRUB_STEP_DEG) * SCRUB_STEP_DEG) % 360;
+      }
       const pt = dial.createSVGPoint();
       pt.x = e.clientX;
       pt.y = e.clientY;
@@ -423,18 +439,46 @@ export const ClockView = {
     };
 
     let activePointerId = null;
+    let pendingPointerPos = null;
+    let dragRafId = null;
+
+    const updateDrag = () => {
+      dragRafId = null;
+      if (!this._activeDragScrubId || !pendingPointerPos) return;
+
+      const scrub = this._scrubs.find((s) => s.id === this._activeDragScrubId);
+      if (!scrub) return;
+
+      const newAngle = calcAngleFromPointer(pendingPointerPos);
+      if (scrub.angle === newAngle) return;
+
+      scrub.angle = newAngle;
+      this._syncScrub(new Date());
+    };
 
     const onPointerMove = (e) => {
       if (!this._activeDragScrubId || e.pointerId !== activePointerId) return;
       if (e.cancelable) e.preventDefault();
-      const scrub = this._scrubs.find((s) => s.id === this._activeDragScrubId);
-      if (!scrub) return;
-      scrub.angle = calcAngleFromPointer(e);
-      this._syncScrub(new Date());
+
+      pendingPointerPos = { clientX: e.clientX, clientY: e.clientY };
+      if (dragRafId !== null) return;
+      dragRafId = requestAnimationFrame(updateDrag);
     };
 
     const onPointerEnd = (e) => {
       if (e.pointerId !== activePointerId) return;
+
+      if (dragRafId !== null) {
+        cancelAnimationFrame(dragRafId);
+        dragRafId = null;
+      }
+      pendingPointerPos = null;
+      cachedCenter = null;
+
+      try {
+        dial.releasePointerCapture?.(e.pointerId);
+      } catch (_) { }
+
       this._activeDragScrubId = null;
       activePointerId = null;
       this._syncScrub(new Date());
@@ -447,6 +491,8 @@ export const ClockView = {
       if (e.button !== undefined && e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
+
+      updateCachedCenter();
       this._activeDragScrubId = scrubId;
       activePointerId = e.pointerId;
       try {

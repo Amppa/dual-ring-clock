@@ -54,6 +54,7 @@ export const DragReorderController = {
       startY: event.clientY,
       lastY: event.clientY,
       slotHeight,
+      dragRafId: null,
       onReorder,
       onMove: (e) => this._onPointerMove(e),
       onEnd: (e) => this._onPointerEnd(e)
@@ -77,7 +78,13 @@ export const DragReorderController = {
     if (e.cancelable) e.preventDefault();
 
     drag.lastY = e.clientY;
-    this._applyDragOffset(drag);
+    if (drag.dragRafId !== null) return;
+
+    drag.dragRafId = requestAnimationFrame(() => {
+      if (!this._drag) return;
+      this._drag.dragRafId = null;
+      this._applyDragOffset(this._drag);
+    });
   },
 
   _onPointerEnd(e) {
@@ -161,6 +168,11 @@ export const DragReorderController = {
   _finishDrag(cancelled) {
     const drag = this._drag;
     if (!drag) return;
+
+    if (drag.dragRafId !== null) {
+      cancelAnimationFrame(drag.dragRafId);
+      drag.dragRafId = null;
+    }
 
     document.removeEventListener("pointermove", drag.onMove);
     document.removeEventListener("pointerup", drag.onEnd);
