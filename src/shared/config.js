@@ -39,10 +39,10 @@ export const CONFIG = {
     showCityTimes: true
   },
   defaultTimePeriods: [
-    { name: "morning", start: 6, end: 8 },
-    { name: "day", start: 9, end: 17 },
-    { name: "evening", start: 18, end: 21 },
-    { name: "night", start: 22, end: 5 }
+    { name: "morning", start: 7, end: 7 },
+    { name: "day", start: 8, end: 17 },
+    { name: "evening", start: 18, end: 23 },
+    { name: "night", start: 0, end: 6 }
   ],
   periodColorsByCount: {
     4: {
