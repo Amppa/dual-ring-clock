@@ -125,8 +125,6 @@ export const ClockView = {
     this._refs = {
       dial,
       ring: document.getElementById("clockRing"),
-      badges: document.getElementById("clockBadges"),
-      ticks: document.getElementById("clockTicks"),
       numerals: document.getElementById("clockNumerals"),
       minuteTrack: document.getElementById("clockMinuteTrack"),
       minuteTrackNumerals: document.getElementById("clockMinuteTrackNumerals"),
@@ -198,8 +196,6 @@ export const ClockView = {
     });
 
     this._refs.ring.innerHTML = ringParts.join("");
-    if (this._refs.ticks) this._refs.ticks.innerHTML = "";
-    if (this._refs.badges) this._refs.badges.innerHTML = "";
     this._refs.numerals.innerHTML = numeralParts.join("");
   },
 
@@ -315,7 +311,3 @@ export const ClockView = {
     return Array.from(this._refs.cityList.children).filter((el) => el.classList.contains("clock-city-row"));
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.ClockView = ClockView;
-}

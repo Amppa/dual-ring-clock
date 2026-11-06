@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.2.2";
+const APP_VERSION = "0.2.2";
 
 export const TimeMapperVersion = {
   render(el) {
@@ -6,7 +6,3 @@ export const TimeMapperVersion = {
     el.textContent = `TimeMapper v${APP_VERSION}`;
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.TimeMapperVersion = TimeMapperVersion;
-}

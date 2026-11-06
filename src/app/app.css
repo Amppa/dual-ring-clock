@@ -1,8 +1,3 @@
-:root {
-  --timeline-label-width: 76px;
-  --timeline-cell-font-size: 9px;
-}
-
 html,
 body {
   height: 100%;
@@ -44,8 +39,8 @@ body {
   width: 100%;
 }
 
-#settingsView[hidden] {
-  display: none;
+#settingsView {
+  width: 100%;
 }
 
 .app-mobile .map-timeline {
@@ -87,10 +82,6 @@ body {
   margin-top: 0;
   font-size: 10px;
   min-width: 0;
-}
-
-.app-mobile .dst-text {
-  display: inline;
 }
 
 .app-mobile .hours {

@@ -26,15 +26,5 @@ export const Storage = {
     } catch (err) {
       console.warn("[TimeMapper] localStorage write failed for", key, err);
     }
-  },
-
-  remove(key) {
-    try {
-      localStorage.removeItem(key);
-    } catch { }
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.Storage = Storage;
-}

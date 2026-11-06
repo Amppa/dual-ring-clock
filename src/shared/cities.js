@@ -69,7 +69,3 @@ export const cityCatalog = [
   { id: "warsaw", zone: "Europe/Warsaw", lng: 21.01, lat: 52.23 },
   { id: "washington-dc", zone: "America/New_York", lng: -77.0, lat: 38.9 }
 ];
-
-if (typeof globalThis !== "undefined") {
-  globalThis.cityCatalog = cityCatalog;
-}

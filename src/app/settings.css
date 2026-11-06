@@ -14,8 +14,6 @@
   --input-bg: #ffffff;
   --input-border: #d1d5db;
   --input-focus-border: #111111;
-  --danger-hover-bg: rgba(239, 68, 68, 0.12);
-  --search-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 :root[data-theme="dark"] {
@@ -201,25 +199,6 @@
   gap: 4px;
   margin-top: 24px;
   padding: 8px 0;
-}
-
-.footer-repo-link {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color var(--transition-fast);
-
-  &:hover {
-    color: var(--text-primary);
-  }
-}
-
-/* Options switch ON state: solid swatch color instead of the shared accent
-   gradient defined in tokens.css (.switch input:checked + .slider). Kept here
-   so the popup's toggle keeps its own palette. */
-.switch input:checked+.slider {
-  background: #F9BE6C;
 }
 
 /* ==========================================================================
@@ -429,24 +408,6 @@
   background: var(--btn-bg-hover);
 }
 
-.search-bar-row button {
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--input-border);
-  border-radius: 7px;
-  background: var(--input-bg);
-  color: var(--text-primary);
-  font-size: 11px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: none;
-}
-
-.search-bar-row button:hover {
-  background: var(--btn-bg-hover);
-  border-color: var(--input-focus-border);
-}
-
 .current-cities-container {
   margin-bottom: 0;
 }
@@ -467,27 +428,6 @@
 
 .current-cities-list::-webkit-scrollbar-thumb:hover {
   background: var(--scroll-thumb-hover);
-}
-
-/* Responsive adjustment for City Card */
-@media (max-width: 1180px) {
-  .current-city-card {
-    grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.6fr) 24px;
-    gap: 6px;
-    padding: 6px 8px;
-  }
-
-  .current-city-card .drag-handle {
-    width: 20px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .remove-city-card-btn {
-    width: 24px;
-    height: 24px;
-    font-size: 16px;
-  }
 }
 
 /* Touch layout: a full-height handle column replaces the compact desktop one. */

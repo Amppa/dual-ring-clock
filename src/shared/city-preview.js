@@ -26,7 +26,7 @@ export const CityPreview = {
       refs.currentCitiesList.classList.remove("is-dragging-active");
     }
     document.querySelectorAll(".current-city-card").forEach((c) => {
-      c.classList.remove("drag-over-top", "drag-over-bottom", "is-dragging");
+      c.classList.remove("is-dragging");
       c.style.transform = "";
       c.style.transition = "";
     });
@@ -81,11 +81,7 @@ export const CityPreview = {
       const now = new Date();
       const zoneDetails = Array.from(uniqueZonesSet).map((zone) => {
         const offsetMins = TimeUtils.getOffsetMinutes(now, zone);
-        const sign = offsetMins >= 0 ? "+" : "-";
-        const absMins = Math.abs(offsetMins);
-        const hours = Math.floor(absMins / 60);
-        const mins = absMins % 60;
-        const offsetStr = `UTC${sign}${hours}${mins > 0 ? ":" + String(mins).padStart(2, "0") : ""}`;
+        const offsetStr = TimeUtils.utcOffsetText(now, zone);
         return { zone, offsetMins, label: `${zone} (${offsetStr})` };
       });
 
@@ -224,7 +220,3 @@ export const CityPreview = {
     }
   },
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.CityPreview = CityPreview;
-}

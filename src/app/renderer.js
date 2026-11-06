@@ -63,20 +63,8 @@ export const Renderer = {
     }
   },
 
-  renderNowLine() {
-    TimelinePreview.renderNowLine(this.getTimelineRefs());
-  },
-
   renderScrubLine() {
     TimelinePreview.renderScrubLine(this.getTimelineRefs());
-  },
-
-  renderIntervals() {
-    TimelinePreview.renderIntervals(this.getTimelineRefs());
   }
 };
-
-if (typeof globalThis !== "undefined") {
-  globalThis.Renderer = Renderer;
-}
 
