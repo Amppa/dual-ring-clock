@@ -24,8 +24,19 @@
         <div class="clock-face-wrap">
           <svg id="clockDial" class="clock-dial" viewBox="-50 -72 300 314" role="img" aria-label="">
             <circle class="clock-bezel" cx="100" cy="100" r="135"></circle>
-            <g id="clockRing" class="clock-ring" aria-hidden="true"></g>
-            <g id="clockNumerals" class="clock-numerals" aria-hidden="true"></g>
+            <!-- Outer Ring (City 1 / Reference) -->
+            <g id="clockOuterRing" class="clock-ring clock-ring--outer" aria-hidden="true"></g>
+            <g id="clockOuterNumerals" class="clock-numerals clock-numerals--outer" aria-hidden="true"></g>
+
+            <!-- Inner Ring (City 2 / Rotating) -->
+            <g id="clockInnerGroup" class="clock-inner-group" aria-hidden="true">
+              <g transform="translate(100 100)">
+                <g id="clockInnerRingRotator" class="clock-inner-ring-rotator">
+                  <g id="clockInnerRing" class="clock-ring clock-ring--inner" transform="translate(-100 -100)"></g>
+                </g>
+              </g>
+              <g id="clockInnerNumerals" class="clock-numerals clock-numerals--inner"></g>
+            </g>
             <g id="clockMinuteTrack" class="clock-minute-track" aria-hidden="true"></g>
             <g id="clockMinuteTrackNumerals" class="clock-minute-track-numerals" aria-hidden="true"></g>
             <text id="clockInnerCityLabel" class="clock-ring-city-label" x="100" y="60" dy="0.35em" text-anchor="middle"></text>

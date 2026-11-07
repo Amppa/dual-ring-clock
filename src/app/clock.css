@@ -49,6 +49,11 @@
   stroke: var(--clock-ring-evening);
 }
 
+.clock-inner-ring-rotator {
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
 .clock-ring-city-label {
   fill: var(--text-primary);
   opacity: 0.5;

@@ -136,14 +136,23 @@ export const ClockView = {
   _current: null,
   _scrubs: [],
   _activeDragScrubId: null,
+  _innerAngle: 0,
+  _currentInnerOffset: null,
+  _innerAnimation: null,
+  _outerPeriodSig: "",
+  _innerPeriodSig: "",
 
   init() {
     const dial = document.getElementById("clockDial");
     if (!dial) return;
     this._refs = {
       dial,
-      ring: document.getElementById("clockRing"),
-      numerals: document.getElementById("clockNumerals"),
+      outerRing: document.getElementById("clockOuterRing"),
+      outerNumerals: document.getElementById("clockOuterNumerals"),
+      innerGroup: document.getElementById("clockInnerGroup"),
+      innerRingRotator: document.getElementById("clockInnerRingRotator"),
+      innerRing: document.getElementById("clockInnerRing"),
+      innerNumerals: document.getElementById("clockInnerNumerals"),
       minuteTrack: document.getElementById("clockMinuteTrack"),
       minuteTrackNumerals: document.getElementById("clockMinuteTrackNumerals"),
       hourHand: document.getElementById("clockHourHand"),
@@ -157,6 +166,11 @@ export const ClockView = {
     };
     this._scrubs = [];
     this._activeDragScrubId = null;
+    this._innerAngle = 0;
+    this._currentInnerOffset = null;
+    this._innerAnimation = null;
+    this._outerPeriodSig = "";
+    this._innerPeriodSig = "";
     this._localZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     const minuteTrack = buildMinuteTrack();
     this._refs.minuteTrack.innerHTML = minuteTrack.ticks.join("");
@@ -201,8 +215,20 @@ export const ClockView = {
     return { city1, city2, zone1, zone2, offset1, offset2, configs };
   },
 
+  _getCurrentRotatorAngle() {
+    if (!this._refs?.innerRingRotator) return null;
+    const tr = window.getComputedStyle(this._refs.innerRingRotator).transform;
+    if (!tr || tr === "none") return null;
+    const values = tr.split("(")[1]?.split(")")[0]?.split(",");
+    if (!values || values.length < 4) return null;
+    const a = parseFloat(values[0]);
+    const b = parseFloat(values[1]);
+    const rad = Math.atan2(b, a);
+    return (rad * 180) / Math.PI;
+  },
+
   _syncRings(now) {
-    const { city1, city2, zone1, zone2, offset1, offset2, configs } = this._ringConfigs(now);
+    const { city1, city2, zone1, zone2, offset1, offset2 } = this._ringConfigs(now);
     this._current = { city1, city2 };
 
     const periodSig = `${State.periodMode || ""}|${(State.timePeriods || []).map((p) => p.start).join(",")}`;
@@ -210,17 +236,125 @@ export const ClockView = {
     if (signature === this._ringSignature) return;
     this._ringSignature = signature;
 
-    const ringParts = [];
-    const numeralParts = [];
+    // 1. Sync Outer Ring (Only rebuilds when period config changes)
+    if (this._outerPeriodSig !== periodSig) {
+      this._outerPeriodSig = periodSig;
+      this._refs.outerRing.innerHTML = buildRingPaths(OUTER_RADIUS, OUTER_WIDTH, 0).join("");
+      this._refs.outerNumerals.innerHTML = buildRingScale(OUTER_RADIUS, 0, true).numerals.join("");
+    }
 
-    configs.forEach(({ radius, width, offset, isOuter }) => {
-      ringParts.push(...buildRingPaths(radius, width, offset));
-      const scale = buildRingScale(radius, offset, isOuter);
-      numeralParts.push(...scale.numerals);
-    });
+    // 2. Sync Inner Ring
+    if (!city2) {
+      if (this._innerAnimation) {
+        this._innerAnimation.cancel();
+        this._innerAnimation = null;
+      }
+      this._refs.innerRing.innerHTML = "";
+      this._refs.innerNumerals.innerHTML = "";
+      this._refs.innerRingRotator.style.transform = "";
+      this._refs.innerNumerals.style.visibility = "";
+      if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
+      this._innerAngle = 0;
+      this._currentInnerOffset = null;
+      this._innerPeriodSig = "";
+      return;
+    }
 
-    this._refs.ring.innerHTML = ringParts.join("");
-    this._refs.numerals.innerHTML = numeralParts.join("");
+    const deltaHours = (offset2 - offset1) / 60;
+    const targetOffsetHours = -deltaHours;
+    const targetAngle = ((targetOffsetHours * HOUR_STEP_DEG) % 360 + 360) % 360;
+
+    // Rebuild inner ring paths if period configuration changed
+    if (this._innerPeriodSig !== periodSig) {
+      this._innerPeriodSig = periodSig;
+      this._refs.innerRing.innerHTML = buildRingPaths(INNER_RADIUS, INNER_WIDTH, 0).join("");
+    }
+
+    const isVisible = Boolean(this._refs.dial.offsetParent);
+
+    // Initial render or hidden view: sync directly without animation
+    if (!isVisible || this._currentInnerOffset === null) {
+      if (this._innerAnimation) {
+        this._innerAnimation.cancel();
+        this._innerAnimation = null;
+      }
+      this._innerAngle = targetAngle;
+      this._currentInnerOffset = targetOffsetHours;
+      this._refs.innerRingRotator.style.transform = `rotate(${targetAngle}deg)`;
+      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
+      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      this._refs.innerNumerals.style.visibility = "";
+      if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
+      return;
+    }
+
+    // Offset hasn't changed (e.g. only period config changed while visible)
+    if (this._currentInnerOffset === targetOffsetHours) {
+      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
+      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      return;
+    }
+
+    // Target offset changed -> Animate rotation with easing curve and hide text instantly
+    this._currentInnerOffset = targetOffsetHours;
+
+    let fromAngle = this._innerAngle;
+    if (this._innerAnimation) {
+      const currentRot = this._getCurrentRotatorAngle();
+      if (currentRot !== null) fromAngle = currentRot;
+      this._innerAnimation.cancel();
+      this._innerAnimation = null;
+    }
+
+    // Shortest path angle: delta in [-180, 180)
+    const delta = ((targetAngle - (fromAngle % 360) + 540) % 360) - 180;
+    const toAngle = fromAngle + delta;
+    this._innerAngle = toAngle;
+
+    // Instant disappearance of text (no fade)
+    this._refs.innerNumerals.style.visibility = "hidden";
+    if (this._refs.innerCityLabel) {
+      this._refs.innerCityLabel.style.visibility = "hidden";
+    }
+
+    if (typeof this._refs.innerRingRotator.animate !== "function") {
+      this._refs.innerRingRotator.style.transform = `rotate(${toAngle}deg)`;
+      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
+      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      this._refs.innerNumerals.style.visibility = "";
+      if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
+      return;
+    }
+
+    const anim = this._refs.innerRingRotator.animate(
+      [
+        { transform: `rotate(${fromAngle}deg)` },
+        { transform: `rotate(${toAngle}deg)` }
+      ],
+      {
+        duration: 400,
+        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+        fill: "forwards"
+      }
+    );
+    this._innerAnimation = anim;
+
+    anim.onfinish = () => {
+      if (this._innerAnimation !== anim) return;
+      this._innerAnimation = null;
+      this._refs.innerRingRotator.style.transform = `rotate(${toAngle}deg)`;
+      try {
+        anim.cancel();
+      } catch (_) {}
+
+      // Rebuild numerals at target orientation and make visible immediately
+      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
+      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      this._refs.innerNumerals.style.visibility = "";
+      if (this._refs.innerCityLabel) {
+        this._refs.innerCityLabel.style.visibility = "";
+      }
+    };
   },
 
   render() {
