@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 256 256">
+  <title>DualRing Clock — Original</title>
+  <rect width="256" height="256" rx="58" fill="#121214"/>
+  <circle cx="128" cy="128" r="86" fill="none" stroke="#EEB422" stroke-width="14"/>
+  <circle cx="128" cy="128" r="60" fill="none" stroke="#EEB422" stroke-width="12"/>
+  <path d="M128 128 L100 100" fill="none" stroke="#F0F0F2" stroke-width="12" stroke-linecap="round"/>
+  <path d="M128 128 L159 75" fill="none" stroke="#77A88D" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="8" fill="#77A88D"/>
+</svg>
