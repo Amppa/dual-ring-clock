@@ -98,15 +98,15 @@
 }
 
 /* Filters sit on the un-rotated wrapper layers so the light stays fixed at
-   the lower right; lengths are SVG user units (1 unit ≈ 1.7 screen px).
-   The minute hand floats higher above the hour hand, so its shadow sits
-   further away: larger offset and softer blur. */
+   the upper-left casting to lower-right.
+   The minute hand floats higher above the hour hand, so its shadow has a
+   substantially larger offset (5px, 6.5px) and softer blur. */
 .clock-hand-layer--hour {
-  filter: drop-shadow(1.5px 1.5px 2px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(3px 4px 2.5px rgba(0, 0, 0, 0.72));
 }
 
 .clock-hand-layer--minute {
-  filter: drop-shadow(2.5px 3.5px 4px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(5px 6.5px 4.5px rgba(0, 0, 0, 0.62));
 }
 
 .clock-hand--hour {
@@ -119,7 +119,20 @@
 
 .clock-pivot {
   fill: var(--clock-minute-track);
+  filter: drop-shadow(3px 4px 2.5px rgba(0, 0, 0, 0.7));
   pointer-events: none;
+}
+
+:root[data-theme="light"] .clock-hand-layer--hour {
+  filter: drop-shadow(3px 4px 2.5px rgba(0, 0, 0, 0.35));
+}
+
+:root[data-theme="light"] .clock-hand-layer--minute {
+  filter: drop-shadow(5px 6.5px 4.5px rgba(0, 0, 0, 0.3));
+}
+
+:root[data-theme="light"] .clock-pivot {
+  filter: drop-shadow(3px 4px 2.5px rgba(0, 0, 0, 0.35));
 }
 
 :root {
