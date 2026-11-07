@@ -24,7 +24,6 @@ export const CONFIG = {
   timePeriodsKey: "worldTimeAlignerTimePeriods",
   periodModeKey: "worldTimeAlignerPeriodMode",
   dayNightPeriodsKey: "worldTimeAlignerDayNightPeriods",
-  languageKey: "worldTimeAlignerLanguage",
   languagePreferenceKey: "worldTimeAlignerLanguagePref",
   /** Internal UI language codes offered in the settings. */
   supportedLanguages: ["zh", "en", "es"],

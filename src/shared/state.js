@@ -122,7 +122,6 @@ export const State = {
       return;
     }
     I18nUtils.setLang(lang);
-    Storage.set(CONFIG.languageKey, lang);
   },
 
   resolveDayNightPeriods(saved) {

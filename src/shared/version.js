@@ -6,5 +6,3 @@ export const AppVersion = {
     el.textContent = `DualRing Clock v${APP_VERSION}`;
   }
 };
-
-export const TimeMapperVersion = AppVersion;

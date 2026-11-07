@@ -188,7 +188,7 @@ export const SettingsController = {
     const themeSelect = document.getElementById("mobileThemeSelect");
     if (themeSelect) {
       themeSelect.addEventListener("change", () => {
-        const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+        const themeObj = globalThis.AppTheme;
         if (themeObj) {
           themeObj.apply(themeSelect.value);
         }

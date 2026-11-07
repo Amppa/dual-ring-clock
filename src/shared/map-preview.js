@@ -185,7 +185,6 @@ export const MapPreview = {
       if (labelFrag.childNodes.length > 0) {
         refs.mapTimeLabelLayer.append(labelFrag);
       }
-      this.updateMapCityTimes(refs, activeFraction);
     }
   },
 

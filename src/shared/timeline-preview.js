@@ -28,6 +28,11 @@ export const TimelinePreview = {
 
     const rowsFrag = document.createDocumentFragment();
 
+    const now = new Date();
+    const firstCity = State.selectedIds.length > 0 ? State.findCity(State.selectedIds[0]) : null;
+    const refZone = firstCity ? firstCity.zone : Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const refOffset = TimeUtils.getOffsetMinutes(State.baseHours[0], refZone);
+
     State.selectedIds.forEach((id) => {
       const city = State.findCity(id);
       if (!city) return;
@@ -40,7 +45,7 @@ export const TimelinePreview = {
       const cityName = I18nUtils.getCityName(city);
       const labelText = document.createElement("div");
       labelText.className = "city-label-text";
-      labelText.innerHTML = `<span class="city-name">${EscapeUtils.html(cityName)}</span><span class="city-time">${TimeUtils.utcOffsetText(new Date(), city.zone)} · ${TimeUtils.formatTime(new Date(), city.zone)}</span>`;
+      labelText.innerHTML = `<span class="city-name">${EscapeUtils.html(cityName)}</span><span class="city-time">${TimeUtils.utcOffsetText(now, city.zone)} · ${TimeUtils.formatTime(now, city.zone)}</span>`;
 
       label.append(labelText);
 
@@ -48,9 +53,6 @@ export const TimelinePreview = {
       hours.className = "hours";
 
       // Calculate offset difference in hours relative to the first (reference) city
-      const firstCity = State.selectedIds.length > 0 ? State.findCity(State.selectedIds[0]) : null;
-      const refZone = firstCity ? firstCity.zone : Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const refOffset = TimeUtils.getOffsetMinutes(State.baseHours[0], refZone);
       const cityOffset = TimeUtils.getOffsetMinutes(State.baseHours[0], city.zone);
       const diffHours = (cityOffset - refOffset) / 60;
       const I = Math.floor(diffHours);
@@ -230,16 +232,7 @@ export const TimelinePreview = {
       const m2 = markers[i + 1];
 
       const diffHours = (m2.fraction - m1.fraction) * 24;
-      const roundedHours = Math.round(diffHours * 2) / 2;
-
-      let text;
-      if (diffHours === 0) {
-        text = "0h";
-      } else if (diffHours < 0.25) {
-        text = "<0.5h";
-      } else {
-        text = `${roundedHours}h`;
-      }
+      const text = TimelineUtils.formatIntervalHours(diffHours);
 
       const span = document.createElement("div");
       span.className = "timeline-interval-span";

@@ -36,7 +36,7 @@ export const TimeUtils = {
   _cachedSupportedZones: null,
 
   getFormatter(locale, options) {
-    const key = `${locale}_${options.timeZone || ''}_${options.hour || ''}_${options.minute || ''}_${options.hour12 || ''}_${options.weekday || ''}_${options.hourCycle || ''}_${options.timeZoneName || ''}_${options.year || ''}_${options.month || ''}_${options.day || ''}`;
+    const key = `${locale}_${options.timeZone || ''}_${options.hour || ''}_${options.minute || ''}_${options.second || ''}_${options.hour12 || ''}_${options.weekday || ''}_${options.hourCycle || ''}_${options.timeZoneName || ''}_${options.year || ''}_${options.month || ''}_${options.day || ''}`;
     if (!this._formatterCache[key]) {
       this._formatterCache[key] = new Intl.DateTimeFormat(locale, options);
     }
@@ -328,7 +328,7 @@ export const PeriodUtils = {
   /** Active theme, following theme.js; falls back to light. */
   currentTheme() {
     try {
-      const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+      const themeObj = globalThis.AppTheme;
       if (themeObj) {
         return themeObj.resolve(localStorage.getItem("theme") || "auto");
       }
@@ -540,6 +540,13 @@ export const TimelineUtils = {
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  },
+
+  /** Interval pill text shared by the clock dial and the timeline strip. */
+  formatIntervalHours(diffHours) {
+    if (diffHours === 0) return "0h";
+    if (diffHours < 0.25) return "<0.5h";
+    return `${Math.round(diffHours * 2) / 2}h`;
   },
 
   snapToFiveMinutes(fraction) {

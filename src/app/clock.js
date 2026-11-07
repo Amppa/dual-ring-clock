@@ -4,7 +4,7 @@
 
 import { CONFIG } from "../shared/config.js";
 import { State } from "../shared/state.js";
-import { TimeUtils, I18nUtils, EscapeUtils } from "../shared/utils.js";
+import { TimeUtils, I18nUtils, EscapeUtils, TimelineUtils } from "../shared/utils.js";
 import { DragReorderController } from "../shared/drag-reorder.js";
 
 const DIAL_CENTER = 100;
@@ -25,8 +25,6 @@ const SCRUB_INTERVAL_ARC_RADIUS = 145; // Increased by 5px
 const SCRUB_LINE_END_RADIUS = 139;
 
 const PERIOD_TONES = ["mid", "day", "mid", "evening"];
-
-const zoneFormatters = new Map();
 
 function polarPoint(radius, angle) {
   const rad = (angle * Math.PI) / 180;
@@ -52,19 +50,19 @@ function buildArcPath(radius, startAngle, endAngle) {
   return `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
 }
 
+function shortestAngleDelta(from, to) {
+  return ((to - (from % 360) + 540) % 360) - 180;
+}
+
 function timePartsInZone(date, zone) {
   const resolved = TimeUtils.resolveZone(zone);
-  let formatter = zoneFormatters.get(resolved);
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: resolved,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hourCycle: "h23"
-    });
-    zoneFormatters.set(resolved, formatter);
-  }
+  const formatter = TimeUtils.getFormatter("en-US", {
+    timeZone: resolved,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  });
   const parts = formatter.formatToParts(date);
   const value = (type) => Number(parts.find((part) => part.type === type)?.value || 0);
   return {
@@ -152,6 +150,7 @@ export const ClockView = {
     if (!dial) return;
     this._refs = {
       dial,
+      view: document.getElementById("clockView"),
       outerRing: document.getElementById("clockOuterRing"),
       outerNumerals: document.getElementById("clockOuterNumerals"),
       innerGroup: document.getElementById("clockInnerGroup"),
@@ -206,43 +205,42 @@ export const ClockView = {
     return { city1, city2, zone1, zone2, offset1, offset2 };
   },
 
-  _animateInnerRing(fromAngle, toAngle, duration, onComplete) {
-    if (this._innerRafId !== null) {
-      cancelAnimationFrame(this._innerRafId);
-      this._innerRafId = null;
+  /** Shared rAF skeleton: ease-out-quart, cancellable via this[rafKey]. */
+  _runAnimation(rafKey, duration, onFrame, onComplete) {
+    if (this[rafKey] !== null) {
+      cancelAnimationFrame(this[rafKey]);
+      this[rafKey] = null;
     }
 
     const startTime = performance.now();
-    const delta = toAngle - fromAngle;
-    const ease = (t) => 1 - Math.pow(1 - t, 4);
-
     const step = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      const current = fromAngle + delta * ease(progress);
-      this._innerCurrentAngle = current;
-
-      if (this._refs?.innerRingRotator) {
-        this._refs.innerRingRotator.setAttribute("transform", `rotate(${current.toFixed(2)})`);
-        this._refs.innerRingRotator.style.transform = `rotate(${current.toFixed(2)}deg)`;
-      }
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      onFrame(eased, progress >= 1);
 
       if (progress < 1) {
-        this._innerRafId = requestAnimationFrame(step);
+        this[rafKey] = requestAnimationFrame(step);
       } else {
-        this._innerRafId = null;
-        this._innerCurrentAngle = toAngle;
-        if (this._refs?.innerRingRotator) {
-          this._refs.innerRingRotator.setAttribute("transform", `rotate(${toAngle.toFixed(2)})`);
-          this._refs.innerRingRotator.style.transform = `rotate(${toAngle.toFixed(2)}deg)`;
-        }
+        this[rafKey] = null;
         if (typeof onComplete === "function") {
           onComplete();
         }
       }
     };
 
-    this._innerRafId = requestAnimationFrame(step);
+    this[rafKey] = requestAnimationFrame(step);
+  },
+
+  _animateInnerRing(fromAngle, toAngle, duration, onComplete) {
+    const delta = toAngle - fromAngle;
+    this._runAnimation("_innerRafId", duration, (eased, done) => {
+      const current = done ? toAngle : fromAngle + delta * eased;
+      this._innerCurrentAngle = current;
+      if (this._refs?.innerRingRotator) {
+        this._refs.innerRingRotator.setAttribute("transform", `rotate(${current.toFixed(2)})`);
+        this._refs.innerRingRotator.style.transform = `rotate(${current.toFixed(2)}deg)`;
+      }
+    }, onComplete);
   },
 
   _syncRings(now) {
@@ -291,8 +289,7 @@ export const ClockView = {
     }
 
     // Check visibility on the HTML view container (SVG elements do not support offsetParent)
-    const clockView = document.getElementById("clockView");
-    const isVisible = clockView ? !clockView.hidden : true;
+    const isVisible = this._refs.view ? !this._refs.view.hidden : true;
 
     // Initial render or hidden view: sync directly without animation
     if (!isVisible || this._currentInnerOffset === null) {
@@ -325,7 +322,7 @@ export const ClockView = {
     let fromAngle = this._innerCurrentAngle !== undefined ? this._innerCurrentAngle : this._innerAngle;
 
     // Shortest path angle: delta in [-180, 180)
-    const delta = ((targetAngle - (fromAngle % 360) + 540) % 360) - 180;
+    const delta = shortestAngleDelta(fromAngle, targetAngle);
     const toAngle = fromAngle + delta;
     this._innerAngle = toAngle;
 
@@ -367,48 +364,20 @@ export const ClockView = {
   },
 
   _animateHands(fromHour, toHour, fromMinute, toMinute, duration) {
-    if (this._handsRafId !== null) {
-      cancelAnimationFrame(this._handsRafId);
-      this._handsRafId = null;
-    }
-
-    const startTime = performance.now();
     const deltaHour = toHour - fromHour;
     const deltaMinute = toMinute - fromMinute;
-    const ease = (t) => 1 - Math.pow(1 - t, 4);
-
-    const step = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      const curHour = fromHour + deltaHour * ease(progress);
-      const curMinute = fromMinute + deltaMinute * ease(progress);
-
+    this._runAnimation("_handsRafId", duration, (eased, done) => {
+      const curHour = done ? toHour : fromHour + deltaHour * eased;
+      const curMinute = done ? toMinute : fromMinute + deltaMinute * eased;
       this._currentHourAngle = curHour;
       this._currentMinuteAngle = curMinute;
-
       if (this._refs?.hourHand) {
         this._refs.hourHand.setAttribute("transform", `rotate(${curHour.toFixed(2)} 100 100)`);
       }
       if (this._refs?.minuteHand) {
         this._refs.minuteHand.setAttribute("transform", `rotate(${curMinute.toFixed(2)} 100 100)`);
       }
-
-      if (progress < 1) {
-        this._handsRafId = requestAnimationFrame(step);
-      } else {
-        this._handsRafId = null;
-        this._currentHourAngle = toHour;
-        this._currentMinuteAngle = toMinute;
-        if (this._refs?.hourHand) {
-          this._refs.hourHand.setAttribute("transform", `rotate(${toHour.toFixed(2)} 100 100)`);
-        }
-        if (this._refs?.minuteHand) {
-          this._refs.minuteHand.setAttribute("transform", `rotate(${toMinute.toFixed(2)} 100 100)`);
-        }
-      }
-    };
-
-    this._handsRafId = requestAnimationFrame(step);
+    });
   },
 
   _renderHands(now) {
@@ -421,8 +390,7 @@ export const ClockView = {
     const targetHourAngle = ((hours % 24) + minutes / 60 + seconds / 3600) * HOUR_STEP_DEG;
     const targetMinuteAngle = (minutes + seconds / 60) * 6;
 
-    const clockView = document.getElementById("clockView");
-    const isVisible = clockView ? !clockView.hidden : true;
+    const isVisible = this._refs.view ? !this._refs.view.hidden : true;
 
     if (!isVisible || this._prevCity1Id === null) {
       if (this._handsRafId !== null) {
@@ -441,10 +409,10 @@ export const ClockView = {
       let fromHour = this._currentHourAngle !== undefined ? this._currentHourAngle : targetHourAngle;
       let fromMinute = this._currentMinuteAngle !== undefined ? this._currentMinuteAngle : targetMinuteAngle;
 
-      const deltaHour = ((targetHourAngle - (fromHour % 360) + 540) % 360) - 180;
+      const deltaHour = shortestAngleDelta(fromHour, targetHourAngle);
       const toHour = fromHour + deltaHour;
 
-      const deltaMinute = ((targetMinuteAngle - (fromMinute % 360) + 540) % 360) - 180;
+      const deltaMinute = shortestAngleDelta(fromMinute, targetMinuteAngle);
       const toMinute = fromMinute + deltaMinute;
 
       this._animateHands(fromHour, toHour, fromMinute, toMinute, 400);
@@ -573,15 +541,7 @@ export const ClockView = {
           // Avoid collision if adjacent lines are closer than 1 hour (15 deg)
           if (diffHours < 1.0) continue;
 
-          const roundedHours = Math.round(diffHours * 2) / 2;
-          let text;
-          if (diffHours === 0) {
-            text = "0h";
-          } else if (diffHours < 0.25) {
-            text = "<0.5h";
-          } else {
-            text = `${roundedHours}h`;
-          }
+          const text = TimelineUtils.formatIntervalHours(diffHours);
 
           const midAngle = (s1.angle + diffDeg / 2) % 360;
           const pt = polarPoint(arcRadius, midAngle);
@@ -609,6 +569,11 @@ export const ClockView = {
       }
       this._refs.scrubIntervals.innerHTML = intervalParts.join("");
     }
+  },
+
+  _removeScrub(id) {
+    this._scrubs = this._scrubs.filter((s) => s.id !== id);
+    this._syncScrub(new Date());
   },
 
   _wireScrub() {
@@ -723,9 +688,7 @@ export const ClockView = {
       if (closeBtn) {
         e.preventDefault();
         e.stopPropagation();
-        const id = closeBtn.dataset.id;
-        this._scrubs = this._scrubs.filter((s) => s.id !== id);
-        this._syncScrub(new Date());
+        this._removeScrub(closeBtn.dataset.id);
         return;
       }
 
@@ -772,9 +735,7 @@ export const ClockView = {
       if (closeBtn) {
         e.preventDefault();
         e.stopPropagation();
-        const id = closeBtn.dataset.id;
-        this._scrubs = this._scrubs.filter((s) => s.id !== id);
-        this._syncScrub(new Date());
+        this._removeScrub(closeBtn.dataset.id);
       }
     });
   },

@@ -1,5 +1,5 @@
 // src/shared/theme.js
-// Applies the color theme to extension pages (popup/options) before first paint.
+// Applies the color theme before first paint.
 (() => {
   const MEDIA = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -34,18 +34,6 @@
     } catch { }
   });
 
-  // Follow theme updates from options / other extension pages
-  window.addEventListener('storage', (e) => {
-    if (!e || e.key === 'theme') {
-      try {
-        apply(localStorage.getItem('theme') || 'auto');
-      } catch {
-        apply('auto');
-      }
-    }
-  });
-
   const themeApi = { apply, resolve };
   globalThis.AppTheme = themeApi;
-  globalThis.TimeMapperTheme = themeApi;
 })();

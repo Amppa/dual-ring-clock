@@ -27,7 +27,7 @@ function syncNavIndicator() {
 }
 
 function applyTheme() {
-  const themeObj = globalThis.AppTheme || globalThis.TimeMapperTheme;
+  const themeObj = globalThis.AppTheme;
   if (themeObj) {
     document.documentElement.dataset.theme =
       themeObj.resolve(localStorage.getItem("theme") || "auto");
