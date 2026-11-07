@@ -811,7 +811,7 @@ export const ClockView = {
       return `<li class="clock-city-row${index > 1 ? " is-secondary" : ""}" aria-label="${EscapeUtils.html(ariaLabel)}">
         <div class="clock-city-meta">
           <span class="clock-city-handle" aria-hidden="true">⋮⋮</span>
-          <span class="clock-city-name">${EscapeUtils.html(name)}</span>
+          <span class="clock-city-name" title="${EscapeUtils.html(name)}">${EscapeUtils.html(name)}</span>
         </div>
         <div class="clock-city-clock">
           <span class="clock-city-date">${EscapeUtils.html(dateText)}</span>
