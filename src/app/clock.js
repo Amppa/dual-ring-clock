@@ -157,6 +157,7 @@ export const ClockView = {
       innerRingRotator: document.getElementById("clockInnerRingRotator"),
       innerRing: document.getElementById("clockInnerRing"),
       innerNumerals: document.getElementById("clockInnerNumerals"),
+      innerNumeralNodes: null,
       minuteTrack: document.getElementById("clockMinuteTrack"),
       minuteTrackNumerals: document.getElementById("clockMinuteTrackNumerals"),
       hourHand: document.getElementById("clockHourHand"),
@@ -231,6 +232,28 @@ export const ClockView = {
     this[rafKey] = requestAnimationFrame(step);
   },
 
+  _ensureInnerNumeralNodes() {
+    const container = this._refs?.innerNumerals;
+    if (!container) return [];
+    if (!this._refs.innerNumeralNodes || this._refs.innerNumeralNodes.length !== 24 || container.children.length !== 24) {
+      if (container.children.length !== 24) {
+        const scale = buildRingScale(INNER_RADIUS, 0, false);
+        container.innerHTML = scale.numerals.join("");
+      }
+      this._refs.innerNumeralNodes = Array.from(container.children);
+    }
+    return this._refs.innerNumeralNodes;
+  },
+
+  _updateInnerNumeralsPosition(angle) {
+    const nodes = this._ensureInnerNumeralNodes();
+    for (let hour = 0; hour < 24; hour += 1) {
+      const pt = polarPoint(INNER_RADIUS, hour * HOUR_STEP_DEG + angle);
+      nodes[hour].setAttribute("x", pt.x.toFixed(2));
+      nodes[hour].setAttribute("y", pt.y.toFixed(2));
+    }
+  },
+
   _animateInnerRing(fromAngle, toAngle, duration, onComplete) {
     const delta = toAngle - fromAngle;
     this._runAnimation("_innerRafId", duration, (eased, done) => {
@@ -240,6 +263,7 @@ export const ClockView = {
         this._refs.innerRingRotator.setAttribute("transform", `rotate(${current.toFixed(2)})`);
         this._refs.innerRingRotator.style.transform = `rotate(${current.toFixed(2)}deg)`;
       }
+      this._updateInnerNumeralsPosition(current);
     }, onComplete);
   },
 
@@ -267,6 +291,7 @@ export const ClockView = {
       }
       this._refs.innerRing.innerHTML = "";
       this._refs.innerNumerals.innerHTML = "";
+      this._refs.innerNumeralNodes = null;
       this._refs.innerRingRotator.removeAttribute("transform");
       this._refs.innerRingRotator.style.transform = "";
       this._refs.innerNumerals.style.visibility = "";
@@ -302,8 +327,7 @@ export const ClockView = {
       this._currentInnerOffset = targetOffsetHours;
       this._refs.innerRingRotator.setAttribute("transform", `rotate(${targetAngle.toFixed(2)})`);
       this._refs.innerRingRotator.style.transform = `rotate(${targetAngle.toFixed(2)}deg)`;
-      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
-      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      this._updateInnerNumeralsPosition(targetAngle);
       this._refs.innerNumerals.style.visibility = "";
       if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
       return;
@@ -311,12 +335,11 @@ export const ClockView = {
 
     // Offset hasn't changed (e.g. only period config changed while visible)
     if (this._currentInnerOffset === targetOffsetHours) {
-      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
-      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
+      this._updateInnerNumeralsPosition(targetAngle);
       return;
     }
 
-    // Target offset changed -> Animate rotation with easing curve and hide text instantly
+    // Target offset changed -> Animate rotation with easing curve and keep numerals upright
     this._currentInnerOffset = targetOffsetHours;
 
     let fromAngle = this._innerCurrentAngle !== undefined ? this._innerCurrentAngle : this._innerAngle;
@@ -326,21 +349,12 @@ export const ClockView = {
     const toAngle = fromAngle + delta;
     this._innerAngle = toAngle;
 
-    // Instant disappearance of text (no fade)
-    this._refs.innerNumerals.style.visibility = "hidden";
+    this._refs.innerNumerals.style.visibility = "";
     if (this._refs.innerCityLabel) {
-      this._refs.innerCityLabel.style.visibility = "hidden";
+      this._refs.innerCityLabel.style.visibility = "";
     }
 
-    this._animateInnerRing(fromAngle, toAngle, 400, () => {
-      // Rebuild numerals at target orientation and make visible immediately
-      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
-      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
-      this._refs.innerNumerals.style.visibility = "";
-      if (this._refs.innerCityLabel) {
-        this._refs.innerCityLabel.style.visibility = "";
-      }
-    });
+    this._animateInnerRing(fromAngle, toAngle, 400);
   },
 
   render() {
