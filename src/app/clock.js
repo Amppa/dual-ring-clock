@@ -137,8 +137,13 @@ export const ClockView = {
   _scrubs: [],
   _activeDragScrubId: null,
   _innerAngle: 0,
+  _innerCurrentAngle: 0,
   _currentInnerOffset: null,
-  _innerAnimation: null,
+  _innerRafId: null,
+  _prevCity1Id: null,
+  _currentHourAngle: 0,
+  _currentMinuteAngle: 0,
+  _handsRafId: null,
   _outerPeriodSig: "",
   _innerPeriodSig: "",
 
@@ -167,8 +172,13 @@ export const ClockView = {
     this._scrubs = [];
     this._activeDragScrubId = null;
     this._innerAngle = 0;
+    this._innerCurrentAngle = 0;
     this._currentInnerOffset = null;
-    this._innerAnimation = null;
+    this._innerRafId = null;
+    this._prevCity1Id = null;
+    this._currentHourAngle = 0;
+    this._currentMinuteAngle = 0;
+    this._handsRafId = null;
     this._outerPeriodSig = "";
     this._innerPeriodSig = "";
     this._localZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
@@ -193,38 +203,46 @@ export const ClockView = {
     const zone2 = city2?.zone || null;
     const offset1 = TimeUtils.getOffsetMinutes(now, zone1);
     const offset2 = zone2 ? TimeUtils.getOffsetMinutes(now, zone2) : null;
-    const configs = [
-      {
-        radius: OUTER_RADIUS,
-        width: OUTER_WIDTH,
-        offset: 0,
-        isOuter: true
-      }
-    ];
-
-    if (city2) {
-      const deltaHours = (offset2 - offset1) / 60;
-      configs.push({
-        radius: INNER_RADIUS,
-        width: INNER_WIDTH,
-        offset: -deltaHours,
-        isOuter: false
-      });
-    }
-
-    return { city1, city2, zone1, zone2, offset1, offset2, configs };
+    return { city1, city2, zone1, zone2, offset1, offset2 };
   },
 
-  _getCurrentRotatorAngle() {
-    if (!this._refs?.innerRingRotator) return null;
-    const tr = window.getComputedStyle(this._refs.innerRingRotator).transform;
-    if (!tr || tr === "none") return null;
-    const values = tr.split("(")[1]?.split(")")[0]?.split(",");
-    if (!values || values.length < 4) return null;
-    const a = parseFloat(values[0]);
-    const b = parseFloat(values[1]);
-    const rad = Math.atan2(b, a);
-    return (rad * 180) / Math.PI;
+  _animateInnerRing(fromAngle, toAngle, duration, onComplete) {
+    if (this._innerRafId !== null) {
+      cancelAnimationFrame(this._innerRafId);
+      this._innerRafId = null;
+    }
+
+    const startTime = performance.now();
+    const delta = toAngle - fromAngle;
+    const ease = (t) => 1 - Math.pow(1 - t, 4);
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const current = fromAngle + delta * ease(progress);
+      this._innerCurrentAngle = current;
+
+      if (this._refs?.innerRingRotator) {
+        this._refs.innerRingRotator.setAttribute("transform", `rotate(${current.toFixed(2)})`);
+        this._refs.innerRingRotator.style.transform = `rotate(${current.toFixed(2)}deg)`;
+      }
+
+      if (progress < 1) {
+        this._innerRafId = requestAnimationFrame(step);
+      } else {
+        this._innerRafId = null;
+        this._innerCurrentAngle = toAngle;
+        if (this._refs?.innerRingRotator) {
+          this._refs.innerRingRotator.setAttribute("transform", `rotate(${toAngle.toFixed(2)})`);
+          this._refs.innerRingRotator.style.transform = `rotate(${toAngle.toFixed(2)}deg)`;
+        }
+        if (typeof onComplete === "function") {
+          onComplete();
+        }
+      }
+    };
+
+    this._innerRafId = requestAnimationFrame(step);
   },
 
   _syncRings(now) {
@@ -245,16 +263,18 @@ export const ClockView = {
 
     // 2. Sync Inner Ring
     if (!city2) {
-      if (this._innerAnimation) {
-        this._innerAnimation.cancel();
-        this._innerAnimation = null;
+      if (this._innerRafId !== null) {
+        cancelAnimationFrame(this._innerRafId);
+        this._innerRafId = null;
       }
       this._refs.innerRing.innerHTML = "";
       this._refs.innerNumerals.innerHTML = "";
+      this._refs.innerRingRotator.removeAttribute("transform");
       this._refs.innerRingRotator.style.transform = "";
       this._refs.innerNumerals.style.visibility = "";
       if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
       this._innerAngle = 0;
+      this._innerCurrentAngle = 0;
       this._currentInnerOffset = null;
       this._innerPeriodSig = "";
       return;
@@ -270,17 +290,21 @@ export const ClockView = {
       this._refs.innerRing.innerHTML = buildRingPaths(INNER_RADIUS, INNER_WIDTH, 0).join("");
     }
 
-    const isVisible = Boolean(this._refs.dial.offsetParent);
+    // Check visibility on the HTML view container (SVG elements do not support offsetParent)
+    const clockView = document.getElementById("clockView");
+    const isVisible = clockView ? !clockView.hidden : true;
 
     // Initial render or hidden view: sync directly without animation
     if (!isVisible || this._currentInnerOffset === null) {
-      if (this._innerAnimation) {
-        this._innerAnimation.cancel();
-        this._innerAnimation = null;
+      if (this._innerRafId !== null) {
+        cancelAnimationFrame(this._innerRafId);
+        this._innerRafId = null;
       }
       this._innerAngle = targetAngle;
+      this._innerCurrentAngle = targetAngle;
       this._currentInnerOffset = targetOffsetHours;
-      this._refs.innerRingRotator.style.transform = `rotate(${targetAngle}deg)`;
+      this._refs.innerRingRotator.setAttribute("transform", `rotate(${targetAngle.toFixed(2)})`);
+      this._refs.innerRingRotator.style.transform = `rotate(${targetAngle.toFixed(2)}deg)`;
       const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
       this._refs.innerNumerals.innerHTML = scale.numerals.join("");
       this._refs.innerNumerals.style.visibility = "";
@@ -298,13 +322,7 @@ export const ClockView = {
     // Target offset changed -> Animate rotation with easing curve and hide text instantly
     this._currentInnerOffset = targetOffsetHours;
 
-    let fromAngle = this._innerAngle;
-    if (this._innerAnimation) {
-      const currentRot = this._getCurrentRotatorAngle();
-      if (currentRot !== null) fromAngle = currentRot;
-      this._innerAnimation.cancel();
-      this._innerAnimation = null;
-    }
+    let fromAngle = this._innerCurrentAngle !== undefined ? this._innerCurrentAngle : this._innerAngle;
 
     // Shortest path angle: delta in [-180, 180)
     const delta = ((targetAngle - (fromAngle % 360) + 540) % 360) - 180;
@@ -317,36 +335,7 @@ export const ClockView = {
       this._refs.innerCityLabel.style.visibility = "hidden";
     }
 
-    if (typeof this._refs.innerRingRotator.animate !== "function") {
-      this._refs.innerRingRotator.style.transform = `rotate(${toAngle}deg)`;
-      const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
-      this._refs.innerNumerals.innerHTML = scale.numerals.join("");
-      this._refs.innerNumerals.style.visibility = "";
-      if (this._refs.innerCityLabel) this._refs.innerCityLabel.style.visibility = "";
-      return;
-    }
-
-    const anim = this._refs.innerRingRotator.animate(
-      [
-        { transform: `rotate(${fromAngle}deg)` },
-        { transform: `rotate(${toAngle}deg)` }
-      ],
-      {
-        duration: 400,
-        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-        fill: "forwards"
-      }
-    );
-    this._innerAnimation = anim;
-
-    anim.onfinish = () => {
-      if (this._innerAnimation !== anim) return;
-      this._innerAnimation = null;
-      this._refs.innerRingRotator.style.transform = `rotate(${toAngle}deg)`;
-      try {
-        anim.cancel();
-      } catch (_) {}
-
+    this._animateInnerRing(fromAngle, toAngle, 400, () => {
       // Rebuild numerals at target orientation and make visible immediately
       const scale = buildRingScale(INNER_RADIUS, targetOffsetHours, false);
       this._refs.innerNumerals.innerHTML = scale.numerals.join("");
@@ -354,7 +343,7 @@ export const ClockView = {
       if (this._refs.innerCityLabel) {
         this._refs.innerCityLabel.style.visibility = "";
       }
-    };
+    });
   },
 
   render() {
@@ -377,15 +366,97 @@ export const ClockView = {
     this._refs.innerCityLabel.textContent = city2 ? I18nUtils.getCityName(city2) : "";
   },
 
+  _animateHands(fromHour, toHour, fromMinute, toMinute, duration) {
+    if (this._handsRafId !== null) {
+      cancelAnimationFrame(this._handsRafId);
+      this._handsRafId = null;
+    }
+
+    const startTime = performance.now();
+    const deltaHour = toHour - fromHour;
+    const deltaMinute = toMinute - fromMinute;
+    const ease = (t) => 1 - Math.pow(1 - t, 4);
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const curHour = fromHour + deltaHour * ease(progress);
+      const curMinute = fromMinute + deltaMinute * ease(progress);
+
+      this._currentHourAngle = curHour;
+      this._currentMinuteAngle = curMinute;
+
+      if (this._refs?.hourHand) {
+        this._refs.hourHand.setAttribute("transform", `rotate(${curHour.toFixed(2)} 100 100)`);
+      }
+      if (this._refs?.minuteHand) {
+        this._refs.minuteHand.setAttribute("transform", `rotate(${curMinute.toFixed(2)} 100 100)`);
+      }
+
+      if (progress < 1) {
+        this._handsRafId = requestAnimationFrame(step);
+      } else {
+        this._handsRafId = null;
+        this._currentHourAngle = toHour;
+        this._currentMinuteAngle = toMinute;
+        if (this._refs?.hourHand) {
+          this._refs.hourHand.setAttribute("transform", `rotate(${toHour.toFixed(2)} 100 100)`);
+        }
+        if (this._refs?.minuteHand) {
+          this._refs.minuteHand.setAttribute("transform", `rotate(${toMinute.toFixed(2)} 100 100)`);
+        }
+      }
+    };
+
+    this._handsRafId = requestAnimationFrame(step);
+  },
+
   _renderHands(now) {
+    if (!this._refs?.hourHand || !this._refs?.minuteHand) return;
+
     const city1 = this._current?.city1 || State.findCity("local");
+    const city1Id = city1?.id || "local";
     const zone = city1?.zone || this._localZone;
     const { hours, minutes, seconds } = timePartsInZone(now, zone);
-    const hourAngle = ((hours % 24) + minutes / 60) * HOUR_STEP_DEG;
-    const minuteAngle = (minutes + seconds / 60) * 6;
+    const targetHourAngle = ((hours % 24) + minutes / 60 + seconds / 3600) * HOUR_STEP_DEG;
+    const targetMinuteAngle = (minutes + seconds / 60) * 6;
 
-    this._refs.hourHand.setAttribute("transform", `rotate(${hourAngle} 100 100)`);
-    this._refs.minuteHand.setAttribute("transform", `rotate(${minuteAngle} 100 100)`);
+    const clockView = document.getElementById("clockView");
+    const isVisible = clockView ? !clockView.hidden : true;
+
+    if (!isVisible || this._prevCity1Id === null) {
+      if (this._handsRafId !== null) {
+        cancelAnimationFrame(this._handsRafId);
+        this._handsRafId = null;
+      }
+      this._prevCity1Id = city1Id;
+      this._currentHourAngle = targetHourAngle;
+      this._currentMinuteAngle = targetMinuteAngle;
+      this._refs.hourHand.setAttribute("transform", `rotate(${targetHourAngle.toFixed(2)} 100 100)`);
+      this._refs.minuteHand.setAttribute("transform", `rotate(${targetMinuteAngle.toFixed(2)} 100 100)`);
+    } else if (this._prevCity1Id !== city1Id) {
+      // City 1 changed -> smoothly animate hands to the new time (handles half-hour timezones too)
+      this._prevCity1Id = city1Id;
+
+      let fromHour = this._currentHourAngle !== undefined ? this._currentHourAngle : targetHourAngle;
+      let fromMinute = this._currentMinuteAngle !== undefined ? this._currentMinuteAngle : targetMinuteAngle;
+
+      const deltaHour = ((targetHourAngle - (fromHour % 360) + 540) % 360) - 180;
+      const toHour = fromHour + deltaHour;
+
+      const deltaMinute = ((targetMinuteAngle - (fromMinute % 360) + 540) % 360) - 180;
+      const toMinute = fromMinute + deltaMinute;
+
+      this._animateHands(fromHour, toHour, fromMinute, toMinute, 400);
+    } else {
+      // Normal continuous ticking when city 1 hasn't changed and no animation is running
+      if (this._handsRafId === null) {
+        this._currentHourAngle = targetHourAngle;
+        this._currentMinuteAngle = targetMinuteAngle;
+        this._refs.hourHand.setAttribute("transform", `rotate(${targetHourAngle.toFixed(2)} 100 100)`);
+        this._refs.minuteHand.setAttribute("transform", `rotate(${targetMinuteAngle.toFixed(2)} 100 100)`);
+      }
+    }
 
     const time = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
     const cityName = city1 ? I18nUtils.getCityName(city1) : "";
@@ -757,13 +828,14 @@ export const ClockView = {
     const rows = this._rowElements();
     if (rows.length < 2) return;
     rows.forEach((row, index) => {
-      row.querySelector(".clock-city-handle")?.addEventListener("pointerdown", (e) => {
+      row.addEventListener("pointerdown", (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
         DragReorderController.begin({
           event: e,
           container: this._refs.cityList,
           item: row,
           items: this._rowElements(),
-          handle: e.currentTarget,
+          handle: row,
           startIndex: index,
           onReorder: (fromIndex, toIndex) => {
             const next = [...State.selectedIds];
@@ -772,6 +844,24 @@ export const ClockView = {
             State.selectedIds = next;
             State.saveSelection();
             this.render();
+          },
+          onTap: () => {
+            if (index >= 2) {
+              const next = [...State.selectedIds];
+              const [picked] = next.splice(index, 1);
+              next.splice(1, 0, picked);
+              State.selectedIds = next;
+              State.saveSelection();
+              this.render();
+            } else if (index === 1 && rows.length >= 2) {
+              const next = [...State.selectedIds];
+              const temp = next[0];
+              next[0] = next[1];
+              next[1] = temp;
+              State.selectedIds = next;
+              State.saveSelection();
+              this.render();
+            }
           }
         });
       });

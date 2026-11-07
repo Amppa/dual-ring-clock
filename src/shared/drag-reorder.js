@@ -53,9 +53,11 @@ export const DragReorderController = {
       targetIndex: startIndex,
       startY: event.clientY,
       lastY: event.clientY,
+      maxDelta: 0,
       slotHeight,
       dragRafId: null,
       onReorder,
+      onTap: options.onTap,
       onMove: (e) => this._onPointerMove(e),
       onEnd: (e) => this._onPointerEnd(e)
     };
@@ -78,6 +80,7 @@ export const DragReorderController = {
     if (e.cancelable) e.preventDefault();
 
     drag.lastY = e.clientY;
+    drag.maxDelta = Math.max(drag.maxDelta, Math.abs(e.clientY - drag.startY));
     if (drag.dragRafId !== null) return;
 
     drag.dragRafId = requestAnimationFrame(() => {
@@ -194,6 +197,9 @@ export const DragReorderController = {
       setTimeout(() => {
         this._cleanupStyles(container, items);
       }, 150);
+      if (!cancelled && drag.maxDelta < 6 && typeof drag.onTap === "function") {
+        drag.onTap();
+      }
       return;
     }
 

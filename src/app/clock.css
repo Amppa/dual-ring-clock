@@ -281,6 +281,10 @@
   color: var(--text-primary);
   transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
   will-change: transform;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
 }
 
 /* Cities 3+ drive no ring, so only their text reads at 50% strength while keeping the card background consistent. */
