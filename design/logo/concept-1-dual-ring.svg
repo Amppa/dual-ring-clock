@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>DualRing Clock — dual-ring day/night logo</title>
+  <circle cx="64" cy="64" r="60" fill="#242429"/>
+  <path d="M100.77 100.77 A52 52 0 0 1 27.23 27.23" fill="none" stroke="#38302E" stroke-width="10"/>
+  <path d="M27.23 27.23 A52 52 0 0 1 100.77 100.77" fill="none" stroke="#EEB422" stroke-width="10"/>
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#77a88d" stroke-width="2" stroke-dasharray="1.6 3.01"/>
+  <path d="M100 64 A36 36 0 0 1 28 64" fill="none" stroke="#38302E" stroke-width="10"/>
+  <path d="M28 64 A36 36 0 0 1 100 64" fill="none" stroke="#EEB422" stroke-width="10"/>
+  <path d="M44.95 53 L64 64 L89.98 49" fill="none" stroke="#f0f0f2" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="64" cy="64" r="5" fill="#0ea5e9"/>
+</svg>

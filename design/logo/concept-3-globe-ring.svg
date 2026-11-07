@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>DualRing Clock — globe dual-ring logo</title>
+  <defs>
+    <clipPath id="globe-clip"><circle cx="64" cy="64" r="32"/></clipPath>
+  </defs>
+  <circle cx="64" cy="64" r="61" fill="none" stroke="#f0f0f2" stroke-width="3"/>
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#1a1a1e" stroke-width="8"/>
+  <path d="M108 64 A44 44 0 0 1 20 64" fill="none" stroke="#38302E" stroke-width="8"/>
+  <path d="M20 64 A44 44 0 0 1 108 64" fill="none" stroke="#EEB422" stroke-width="8"/>
+  <circle cx="64" cy="64" r="32" fill="#6ecbf5"/>
+  <g clip-path="url(#globe-clip)">
+    <path d="M40 40 C48 34 56 36 58 44 C50 50 44 52 38 50 C36 46 37 43 40 40 Z" fill="#8fd694"/>
+    <path d="M84 44 C92 50 94 62 90 74 C82 76 76 72 74 64 C76 54 79 48 84 44 Z" fill="#8fd694"/>
+    <path d="M34 74 C48 66 60 78 74 84 C66 94 48 94 40 86 C36 82 34 78 34 74 Z" fill="#4a89a8"/>
+  </g>
+  <path d="M64 38 L64 64 L84 74" fill="none" stroke="#1a1a1e" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
